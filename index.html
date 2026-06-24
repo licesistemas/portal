@@ -3944,23 +3944,79 @@
       return `https://meet.jit.si/${encodeURIComponent(jitsiSafeRoomName())}`;
     }
 
+    function ensureJitsiOpenButton() {
+      if (!els.startCallBtn || document.querySelector("#openJitsiExternalBtn")) return;
+      const button = document.createElement("button");
+      button.className = "secondary-action";
+      button.id = "openJitsiExternalBtn";
+      button.type = "button";
+      button.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14L21 3"></path></svg>
+        Abrir Jitsi
+      `;
+      button.addEventListener("click", () => openJitsiExternal());
+      els.startCallBtn.insertAdjacentElement("afterend", button);
+    }
+
+    async function openJitsiExternal() {
+      const url = jitsiRoomUrl();
+      try {
+        await publishJitsiCallStatus("ao_vivo").catch(error => console.warn("Não foi possível publicar chamada antes de abrir Jitsi", error));
+      } catch (error) {
+        console.warn("Jitsi status ignored", error);
+      }
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (popup) {
+        setRtcStatus("Jitsi aberto em nova aba");
+        showToast("Jitsi aberto em nova aba");
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          showToast("Popup bloqueado. Link do Jitsi copiado");
+        } catch (error) {
+          showToast("Popup bloqueado. Copie o link no convite");
+        }
+      }
+    }
+
     function loadJitsiApi() {
       if (window.JitsiMeetExternalAPI) return Promise.resolve();
       if (window.__jitsiExternalApiPromise) return window.__jitsiExternalApiPromise;
       window.__jitsiExternalApiPromise = new Promise((resolve, reject) => {
+        const finishError = message => reject(new Error(message));
+        const timer = window.setTimeout(() => {
+          finishError("Tempo esgotado ao carregar a API do Jitsi. Verifique internet, bloqueador de anúncios, antivírus ou rede corporativa.");
+        }, 12000);
+        const done = () => {
+          window.clearTimeout(timer);
+          if (window.JitsiMeetExternalAPI) {
+            resolve();
+          } else {
+            reject(new Error("O script do Jitsi carregou, mas a API não ficou disponível."));
+          }
+        };
         const existing = document.querySelector('script[data-jitsi-api="true"]');
         if (existing) {
-          existing.addEventListener("load", resolve, { once: true });
-          existing.addEventListener("error", () => reject(new Error("Não foi possível carregar o Jitsi")), { once: true });
+          existing.addEventListener("load", done, { once: true });
+          existing.addEventListener("error", () => {
+            window.clearTimeout(timer);
+            reject(new Error("Não foi possível carregar https://meet.jit.si/external_api.js"));
+          }, { once: true });
           return;
         }
         const script = document.createElement("script");
         script.src = "https://meet.jit.si/external_api.js";
         script.async = true;
         script.dataset.jitsiApi = "true";
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Não foi possível carregar o Jitsi"));
+        script.onload = done;
+        script.onerror = () => {
+          window.clearTimeout(timer);
+          reject(new Error("Não foi possível carregar https://meet.jit.si/external_api.js"));
+        };
         document.head.appendChild(script);
+      }).catch(error => {
+        window.__jitsiExternalApiPromise = null;
+        throw error;
       });
       return window.__jitsiExternalApiPromise;
     }
@@ -3984,7 +4040,7 @@
         parentNode,
         width: "100%",
         height: "100%",
-        lang: "ptBR",
+        lang: "pt-BR",
         userInfo: {
           displayName: displayName || state.userName || "Sala Virtual"
         },
@@ -3992,7 +4048,8 @@
           prejoinPageEnabled: false,
           startWithAudioMuted: startMuted,
           startWithVideoMuted: startMuted,
-          disableDeepLinking: true
+          disableDeepLinking: true,
+          enableWelcomePage: false
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
@@ -4003,39 +4060,77 @@
       };
     }
 
+    function mountJitsiFallback(stage, displayName, startMuted = false) {
+      if (!stage) throw new Error("Área Jitsi não encontrada");
+      stage.innerHTML = "";
+      stage.hidden = false;
+      stage.closest(".call-stage, .client-video-stage")?.classList.add("jitsi-active", "camera-active");
+      const params = new URLSearchParams({
+        "config.prejoinPageEnabled": "false",
+        "config.startWithAudioMuted": String(Boolean(startMuted)),
+        "config.startWithVideoMuted": String(Boolean(startMuted)),
+        "config.disableDeepLinking": "true",
+        "userInfo.displayName": displayName || state.userName || "Sala Virtual"
+      });
+      const iframe = document.createElement("iframe");
+      iframe.src = `${jitsiRoomUrl()}#${params.toString()}`;
+      iframe.allow = "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write";
+      iframe.referrerPolicy = "no-referrer-when-downgrade";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "0";
+      iframe.setAttribute("allowfullscreen", "true");
+      stage.appendChild(iframe);
+      return iframe;
+    }
+
     async function startJitsiAsOperator() {
-      await loadJitsiApi();
       if (!els.operatorJitsiStage) throw new Error("Área Jitsi do operador não encontrada");
       disposeJitsiApi("jitsiOperatorApi", els.operatorJitsiStage);
-      els.operatorJitsiStage.hidden = false;
-      els.operatorJitsiStage.closest(".call-stage")?.classList.add("jitsi-active");
-      const api = new JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.operatorJitsiStage, "Operador", false));
-      state.jitsiOperatorApi = api;
-      api.addListener("videoConferenceJoined", () => setRtcStatus("Jitsi ao vivo"));
-      api.addListener("participantJoined", () => setRtcStatus("Cliente conectado"));
-      api.addListener("audioMuteStatusChanged", event => els.micBtn?.classList.toggle("active", !event?.muted));
-      api.addListener("videoMuteStatusChanged", event => els.cameraBtn?.classList.toggle("active", !event?.muted));
-      api.addListener("readyToClose", () => endCall());
-      api.addListener("screenSharingStatusChanged", event => {
-        els.screenBtn?.classList.toggle("active", Boolean(event?.on));
-        document.querySelector(".call-stage")?.classList.toggle("screen-active", Boolean(event?.on));
-      });
-      return api;
+      try {
+        await loadJitsiApi();
+        els.operatorJitsiStage.hidden = false;
+        els.operatorJitsiStage.closest(".call-stage")?.classList.add("jitsi-active");
+        const api = new window.JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.operatorJitsiStage, "Operador", false));
+        state.jitsiOperatorApi = api;
+        api.addListener("videoConferenceJoined", () => setRtcStatus("Jitsi ao vivo"));
+        api.addListener("participantJoined", () => setRtcStatus("Cliente conectado"));
+        api.addListener("audioMuteStatusChanged", event => els.micBtn?.classList.toggle("active", !event?.muted));
+        api.addListener("videoMuteStatusChanged", event => els.cameraBtn?.classList.toggle("active", !event?.muted));
+        api.addListener("readyToClose", () => endCall());
+        api.addListener("screenSharingStatusChanged", event => {
+          els.screenBtn?.classList.toggle("active", Boolean(event?.on));
+          document.querySelector(".call-stage")?.classList.toggle("screen-active", Boolean(event?.on));
+        });
+        return api;
+      } catch (error) {
+        console.warn("Jitsi iframe API failed, using direct iframe fallback", error);
+        mountJitsiFallback(els.operatorJitsiStage, "Operador", false);
+        setRtcStatus("Jitsi aberto por fallback");
+        showToast("Jitsi aberto em modo compatibilidade");
+        return null;
+      }
     }
 
     async function joinJitsiAsClient(roomName = null) {
-      await loadJitsiApi();
-      if (!els.clientJitsiStage || state.jitsiClientApi) return;
+      if (!els.clientJitsiStage || state.jitsiClientApi || els.clientJitsiStage.querySelector("iframe")) return;
       if (roomName) state.jitsiRoomName = roomName;
-      els.clientJitsiStage.hidden = false;
-      els.clientVideoStage?.classList.add("jitsi-active", "camera-active");
-      const api = new JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.clientJitsiStage, state.userName || "Cliente lojista", true));
-      state.jitsiClientApi = api;
-      api.addListener("videoConferenceJoined", () => setRtcStatus("Conectado ao Jitsi"));
-      api.addListener("readyToClose", () => {
-        disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
-        setRtcStatus("Chamada encerrada");
-      });
+      try {
+        await loadJitsiApi();
+        els.clientJitsiStage.hidden = false;
+        els.clientVideoStage?.classList.add("jitsi-active", "camera-active");
+        const api = new window.JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.clientJitsiStage, state.userName || "Cliente lojista", true));
+        state.jitsiClientApi = api;
+        api.addListener("videoConferenceJoined", () => setRtcStatus("Conectado ao Jitsi"));
+        api.addListener("readyToClose", () => {
+          disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+          setRtcStatus("Chamada encerrada");
+        });
+      } catch (error) {
+        console.warn("Jitsi client API failed, using fallback", error);
+        mountJitsiFallback(els.clientJitsiStage, state.userName || "Cliente lojista", true);
+        setRtcStatus("Conectado ao Jitsi");
+      }
     }
 
     function listenJitsiCallStatus() {
@@ -4085,13 +4180,17 @@
 
       try {
         await startJitsiAsOperator();
-        await publishJitsiCallStatus("ao_vivo");
+        await publishJitsiCallStatus("ao_vivo").catch(error => {
+          console.warn("Não foi possível salvar status da chamada no Realtime Database", error);
+          showToast("Jitsi iniciou, mas não salvou status no banco");
+        });
         setRtcStatus("Jitsi ao vivo");
         showToast("Sala Jitsi iniciada");
       } catch (error) {
         console.warn("Jitsi start failed", error);
         setRtcStatus("Erro no Jitsi");
-        showToast("Não foi possível iniciar o Jitsi");
+        showToast(error?.message || "Não foi possível iniciar o Jitsi");
+        ensureJitsiOpenButton();
       }
     }
 
@@ -4099,6 +4198,10 @@
       if (state.jitsiOperatorApi) {
         state.jitsiOperatorApi.executeCommand("toggleShareScreen");
         showToast("Compartilhamento pelo Jitsi");
+        return;
+      }
+      if (els.operatorJitsiStage?.querySelector("iframe")) {
+        showToast("Use o botão de compartilhar tela dentro do Jitsi");
         return;
       }
       showToast("Inicie a chamada Jitsi primeiro");
@@ -5108,6 +5211,7 @@
       }
     });
 
+    ensureJitsiOpenButton();
     initializeFromUrl();
     els.roomCodeLabel.textContent = state.roomCode;
     renderCatalog();
