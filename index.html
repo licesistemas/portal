@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sala Virtual Têxtil Pro - Jitsi Iframe</title>
+  <title>Sala Virtual Têxtil Pro</title>
   <style>
     :root {
       --bg: #f4f6f3;
@@ -2266,57 +2266,76 @@
 
 
 
-    /* Integração Jitsi Meet */
-    .jitsi-stage {
+    /* Videochamada WebRTC nativa */
+    .remote-video,
+    .client-local-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #071512;
+      display: block;
+    }
+
+    .remote-video {
       position: absolute;
       inset: 0;
-      z-index: 12;
+      z-index: 1;
       display: none;
-      overflow: hidden;
-      border-radius: inherit;
-      background: #071512;
     }
 
-    .jitsi-stage iframe {
-      width: 100% !important;
-      height: 100% !important;
-      border: 0 !important;
+    .call-stage.webrtc-active .remote-video {
       display: block;
-      background: #071512;
     }
 
-    .call-stage.jitsi-active > :not(.jitsi-stage),
-    .client-video-stage.jitsi-active > :not(.jitsi-stage) {
+    .call-stage.webrtc-active .customer-video,
+    .call-stage.webrtc-active .showcase-caption {
       display: none !important;
     }
 
-    .call-stage.jitsi-active .jitsi-stage,
-    .client-video-stage.jitsi-active .jitsi-stage {
-      display: block !important;
+    .call-stage.webrtc-active .operator-preview {
+      z-index: 4;
     }
 
-    .call-stage.jitsi-active,
-    .client-video-stage.jitsi-active {
-      background: #071512;
+    .client-video-stage.webrtc-active .client-operator-video,
+    .client-video-stage.camera-active .client-operator-video {
+      display: block;
     }
 
-    .jitsi-stage.loading::before {
-      content: "Carregando sala Jitsi...";
+    .client-video-stage.webrtc-active .client-showcase-piece,
+    .client-video-stage.webrtc-active .client-camera-placeholder,
+    .client-video-stage.camera-active .client-showcase-piece,
+    .client-video-stage.camera-active .client-camera-placeholder {
+      display: none !important;
+    }
+
+    .client-local-preview {
       position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      color: rgba(255,255,255,0.82);
-      font-weight: 800;
-      letter-spacing: .02em;
+      right: 16px;
+      bottom: 154px;
+      width: 144px;
+      height: 104px;
+      z-index: 8;
+      display: none;
+      overflow: hidden;
+      border-radius: var(--soft-radius);
+      border: 2px solid rgba(255,255,255,0.82);
       background: #071512;
-      z-index: 1;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.28);
     }
 
-    .jitsi-stage iframe {
-      position: relative;
-      z-index: 2;
+    .client-video-stage.webrtc-active .client-local-preview {
+      display: block;
     }
+
+    @media (max-width: 540px) {
+      .client-local-preview {
+        width: 110px;
+        height: 82px;
+        right: 14px;
+        bottom: 148px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2506,7 +2525,7 @@
         </div>
 
         <section class="call-stage" aria-label="Video chamada">
-          <div class="jitsi-stage" id="operatorJitsiStage" hidden></div>
+          <video class="remote-video" id="operatorRemoteVideo" autoplay playsinline></video>
           <div class="customer-video">
             <div class="showcase-piece" id="showcasePiece"></div>
             <div class="customer-avatar" id="customerAvatar">AM</div>
@@ -2727,8 +2746,10 @@
         </div>
 
         <section class="client-video-stage" id="clientVideoStage" aria-label="Câmera do operador">
-          <div class="jitsi-stage" id="clientJitsiStage" hidden></div>
-          <video class="client-operator-video" id="clientOperatorVideo" autoplay playsinline controls></video>
+          <video class="client-operator-video" id="clientOperatorVideo" autoplay playsinline></video>
+          <div class="client-local-preview" id="clientLocalPreview">
+            <video id="clientLocalVideo" muted autoplay playsinline></video>
+          </div>
           <div class="client-video-caption">
             <strong id="clientShowcaseName">Blazer Milano Alfaiataria</strong>
             <span id="clientShowcaseMeta">Azul marinho | Crepe premium</span>
@@ -3141,10 +3162,9 @@
       rtcCallUnsubscribe: null,
       rtcCallerCandidateUnsubscribe: null,
       joiningCall: false,
-      jitsiOperatorApi: null,
-      jitsiClientApi: null,
-      jitsiCallUnsubscribe: null,
-      jitsiRoomName: null,
+      rtcRole: null,
+      rtcRemoteDescriptionSet: false,
+      rtcCurrentScreenTrack: null,
       role: null,
       userName: "Lojista",
       roomCode: "LIVE-4821",
@@ -3227,6 +3247,7 @@
       cameraBtn: document.querySelector("#cameraBtn"),
       screenBtn: document.querySelector("#screenBtn"),
       localVideo: document.querySelector("#localVideo"),
+      operatorRemoteVideo: document.querySelector("#operatorRemoteVideo"),
       operatorPreview: document.querySelector("#operatorPreview"),
       showcasePiece: document.querySelector("#showcasePiece"),
       showcaseName: document.querySelector("#showcaseName"),
@@ -3242,6 +3263,8 @@
       clientRoomCodeLabel: document.querySelector("#clientRoomCodeLabel"),
       clientVideoStage: document.querySelector("#clientVideoStage"),
       clientOperatorVideo: document.querySelector("#clientOperatorVideo"),
+      clientLocalVideo: document.querySelector("#clientLocalVideo"),
+      clientLocalPreview: document.querySelector("#clientLocalPreview"),
       clientCâmeraPlaceholder: document.querySelector("#clientCâmeraPlaceholder"),
       clientShowcasePiece: document.querySelector("#clientShowcasePiece"),
       clientShowcaseName: document.querySelector("#clientShowcaseName"),
@@ -3948,272 +3971,389 @@
       if (els.clientSessionStatus) els.clientSessionStatus.textContent = message;
     }
 
-    function jitsiSafeRoomName() {
-      const base = String(state.roomCode || "LIVE-4821")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^A-Za-z0-9_-]/g, "")
-        .slice(0, 42) || "LIVE4821";
-      state.jitsiRoomName = `PortalF422aSalaVirtualTextil_${base}`;
-      return state.jitsiRoomName;
-    }
+    const rtcConfig = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ]
+    };
 
-    function jitsiRoomUrl(roomName = null) {
-      const room = roomName || state.jitsiRoomName || jitsiSafeRoomName();
-      return `https://meet.jit.si/${encodeURIComponent(room)}`;
-    }
-
-    function ensureJitsiOpenButton() {
-      // O Jitsi fica embutido dentro da própria tela de vídeo.
-    }
-
-    async function openJitsiExternal() {
-      // Compatibilidade com versões antigas: inicia dentro da tela, não em nova aba.
-      await startCall();
-    }
-
-    function showJitsiPanel(stage, title, message, actionLabel = null, action = null) {
-      if (!stage) return;
-      const safeTitle = escapeHtml(title || "Jitsi");
-      const safeMessage = escapeHtml(message || "");
-      stage.innerHTML = `
-        <div style="position:absolute;inset:0;display:grid;place-items:center;padding:22px;background:#071512;color:#fff;text-align:center;z-index:4;">
-          <div style="max-width:520px;display:grid;gap:12px;justify-items:center;">
-            <strong style="font-size:18px;">${safeTitle}</strong>
-            <span style="color:rgba(255,255,255,.76);line-height:1.45;">${safeMessage}</span>
-            ${actionLabel ? `<button class="primary-action" type="button" data-jitsi-panel-action>${escapeHtml(actionLabel)}</button>` : ""}
-          </div>
-        </div>`;
-      if (actionLabel && typeof action === "function") {
-        stage.querySelector("[data-jitsi-panel-action]")?.addEventListener("click", action, { once: true });
-      }
-    }
-
-    function prepareJitsiStage(stage) {
-      if (!stage) throw new Error("Área Jitsi não encontrada");
-      const wrapper = stage.closest(".call-stage, .client-video-stage");
-      stage.hidden = false;
-      stage.innerHTML = "";
-      stage.classList.add("loading");
-      wrapper?.classList.add("jitsi-active", "camera-active");
-      return wrapper;
-    }
-
-    function buildJitsiHash(displayName, startMuted = false) {
-      const params = new URLSearchParams({
-        "config.prejoinPageEnabled": "false",
-        "config.disableDeepLinking": "true",
-        "config.enableWelcomePage": "false",
-        "config.requireDisplayName": "false",
-        "config.startWithAudioMuted": String(Boolean(startMuted)),
-        "config.startWithVideoMuted": String(Boolean(startMuted)),
-        "interfaceConfig.MOBILE_APP_PROMO": "false",
-        "interfaceConfig.SHOW_JITSI_WATERMARK": "false",
-        "interfaceConfig.SHOW_WATERMARK_FOR_GUESTS": "false",
-        "userInfo.displayName": displayName || state.userName || "Sala Virtual"
-      });
-      return params.toString();
-    }
-
-    function mountJitsiIframe(stage, displayName, startMuted = false, roomName = null, stateKey = null) {
-      prepareJitsiStage(stage);
-      showJitsiPanel(stage, "Carregando Jitsi", "Abrindo a reunião dentro da tela de vídeo...");
-
-      const room = roomName || state.jitsiRoomName || jitsiSafeRoomName();
-      state.jitsiRoomName = room;
-
-      const iframe = document.createElement("iframe");
-      iframe.title = "Jitsi Meet integrado";
-      iframe.allow = "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write";
-      iframe.allowFullscreen = true;
-      iframe.referrerPolicy = "no-referrer-when-downgrade";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "0";
-      iframe.src = `${jitsiRoomUrl(room)}#${buildJitsiHash(displayName, startMuted)}`;
-
-      stage.innerHTML = "";
-      stage.appendChild(iframe);
-
-      const markReady = () => {
-        stage.classList.remove("loading");
-        setRtcStatus("Jitsi integrado na tela");
-      };
-      iframe.addEventListener("load", markReady, { once: true });
-      window.setTimeout(markReady, 4500);
-
-      if (stateKey) {
-        state[stateKey] = {
-          iframe,
-          dispose() {
-            iframe.remove();
-          },
-          executeCommand(command) {
-            if (command === "toggleShareScreen") {
-              showToast("Use o botão de compartilhar tela dentro do Jitsi integrado");
-            } else if (command === "toggleAudio" || command === "toggleVideo") {
-              showToast("Use os controles de microfone/câmera dentro do Jitsi integrado");
-            }
-          }
-        };
-      }
-      return iframe;
-    }
-
-    function loadJitsiApi() {
-      // Esta versão usa iframe integrado direto, que é mais estável no Firebase Hosting/GitHub Pages.
-      return Promise.resolve();
-    }
-
-    function disposeJitsiApi(key, stage) {
-      const api = state[key];
-      if (api) {
-        try { api.dispose?.(); } catch (error) { console.warn("Jitsi dispose failed", error); }
-      }
-      state[key] = null;
-      if (stage) {
-        stage.innerHTML = "";
-        stage.hidden = true;
-        stage.classList.remove("loading");
-        stage.closest(".call-stage, .client-video-stage")?.classList.remove("jitsi-active", "camera-active", "screen-active");
-      }
-    }
-
-    function baseJitsiOptions(parentNode, displayName, startMuted = false, roomName = null) {
-      // Mantido apenas para compatibilidade com versões anteriores do arquivo.
-      const room = roomName || state.jitsiRoomName || jitsiSafeRoomName();
-      state.jitsiRoomName = room;
-      return { roomName: room, parentNode, width: "100%", height: "100%", lang: "pt-BR", userInfo: { displayName: displayName || state.userName || "Sala Virtual" } };
-    }
-
-    async function mountJitsiApi(stage, displayName, startMuted = false, roomName = null, stateKey = null) {
-      // Iframe direto, sem depender do script externo_api.js. Continua integrado dentro do palco de vídeo.
-      return mountJitsiIframe(stage, displayName, startMuted, roomName, stateKey);
-    }
-
-    function mountEmbeddedJitsiIframe(stage, displayName, startMuted = false, roomName = null) {
-      return mountJitsiIframe(stage, displayName, startMuted, roomName, null);
-    }
-
-    async function startJitsiAsOperator() {
-      if (!els.operatorJitsiStage) throw new Error("Área Jitsi do operador não encontrada");
-      disposeJitsiApi("jitsiOperatorApi", els.operatorJitsiStage);
-      mountJitsiIframe(els.operatorJitsiStage, "Operador", false, state.jitsiRoomName || jitsiSafeRoomName(), "jitsiOperatorApi");
-      els.operatorJitsiStage.closest(".call-stage")?.classList.add("jitsi-active", "camera-active");
-      setRtcStatus("Jitsi integrado na tela");
-      return state.jitsiOperatorApi;
-    }
-
-    async function joinJitsiAsClient(roomName = null) {
-      if (!els.clientJitsiStage) return;
-      if (roomName) state.jitsiRoomName = roomName;
-      if (state.jitsiClientApi || els.clientJitsiStage.querySelector("iframe")) return;
-      mountJitsiIframe(els.clientJitsiStage, state.userName || "Cliente lojista", true, state.jitsiRoomName || jitsiSafeRoomName(), "jitsiClientApi");
-      els.clientVideoStage?.classList.add("jitsi-active", "camera-active");
-      setRtcStatus("Conectado ao Jitsi na tela");
-    }
-
-    function listenJitsiCallStatus() {
+    function callDocRef() {
       const firebase = window.firebasePortal;
-      if (state.role !== "client" || !firebase?.db || state.jitsiCallUnsubscribe) return;
-      const callRef = firebase.doc(firebase.db, "calls", state.roomCode);
-      state.jitsiCallUnsubscribe = firebase.onSnapshot(callRef, snapshot => {
-        const data = snapshot.data();
-        if (data?.provider === "jitsi" && data?.status === "ao_vivo") {
-          state.jitsiRoomName = data.roomName || jitsiSafeRoomName();
-          joinJitsiAsClient(state.jitsiRoomName).catch(error => {
-            console.warn("Jitsi client join failed", error);
-            setRtcStatus("Erro no Jitsi");
+      return firebase?.doc(firebase.db, "calls", state.roomCode);
+    }
+
+    function callCollectionRef(name) {
+      const firebase = window.firebasePortal;
+      return firebase?.collection(firebase.db, "calls", state.roomCode, name);
+    }
+
+    function candidateToJSON(candidate) {
+      if (!candidate) return null;
+      return typeof candidate.toJSON === "function" ? candidate.toJSON() : {
+        candidate: candidate.candidate,
+        sdpMid: candidate.sdpMid,
+        sdpMLineIndex: candidate.sdpMLineIndex,
+        usernameFragment: candidate.usernameFragment || null
+      };
+    }
+
+    async function getLocalMedia() {
+      if (state.cameraStream) return state.cameraStream;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Seu navegador não liberou câmera/microfone. Use Chrome, Edge ou Safari em HTTPS.");
+      }
+      state.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+        audio: true
+      });
+      attachLocalStream();
+      return state.cameraStream;
+    }
+
+    function attachLocalStream() {
+      if (els.localVideo && state.cameraStream) {
+        els.localVideo.srcObject = state.cameraStream;
+        els.operatorPreview?.classList.add("active");
+      }
+      if (els.clientLocalVideo && state.cameraStream) {
+        els.clientLocalVideo.srcObject = state.cameraStream;
+      }
+    }
+
+    function attachRemoteStream() {
+      const target = state.rtcRole === "client" ? els.clientOperatorVideo : els.operatorRemoteVideo;
+      if (target && state.remoteStream) {
+        target.srcObject = state.remoteStream;
+        target.play?.().catch(() => {});
+      }
+      if (state.rtcRole === "operator") {
+        document.querySelector(".call-stage")?.classList.add("webrtc-active", "camera-active");
+      }
+      if (state.rtcRole === "client") {
+        els.clientVideoStage?.classList.add("webrtc-active", "camera-active");
+      }
+    }
+
+    function createPeerConnection(candidateCollectionName) {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) throw new Error("Realtime Database ainda não conectou");
+
+      const pc = new RTCPeerConnection(rtcConfig);
+      state.peerConnection = pc;
+      state.remoteStream = new MediaStream();
+      state.rtcRemoteDescriptionSet = false;
+      attachRemoteStream();
+
+      pc.ontrack = event => {
+        event.streams?.[0]?.getTracks()?.forEach(track => {
+          if (!state.remoteStream.getTracks().some(existing => existing.id === track.id)) {
+            state.remoteStream.addTrack(track);
+          }
+        });
+        attachRemoteStream();
+        setRtcStatus("Vídeo conectado");
+      };
+
+      pc.onicecandidate = async event => {
+        if (!event.candidate) return;
+        try {
+          await firebase.addDoc(callCollectionRef(candidateCollectionName), candidateToJSON(event.candidate));
+        } catch (error) {
+          console.warn("Falha ao salvar ICE candidate", error);
+          showToast("Falha ao sinalizar conexão");
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        const status = pc.connectionState;
+        if (status === "connected") setRtcStatus("Chamada conectada");
+        if (status === "connecting") setRtcStatus("Conectando vídeo...");
+        if (status === "failed") setRtcStatus("Falha na conexão de vídeo");
+        if (status === "disconnected") setRtcStatus("Vídeo desconectado");
+        if (status === "closed") setRtcStatus("Chamada encerrada");
+      };
+
+      return pc;
+    }
+
+    async function addLocalTracks(pc) {
+      const stream = await getLocalMedia();
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      els.cameraBtn?.classList.toggle("active", stream.getVideoTracks().some(track => track.enabled));
+      els.micBtn?.classList.toggle("active", stream.getAudioTracks().some(track => track.enabled));
+    }
+
+    async function clearRtcSignalData() {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) return;
+      await Promise.all([
+        firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode, "callerCandidates"), {}),
+        firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode, "calleeCandidates"), {})
+      ]).catch(error => console.warn("Não foi possível limpar candidatos antigos", error));
+    }
+
+    async function publishRtcStatus(extra = {}) {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) return;
+      await firebase.setDoc(callDocRef(), {
+        roomCode: state.roomCode,
+        provider: "webrtc",
+        updatedAt: firebase.serverTimestamp(),
+        ...extra
+      }, { merge: true });
+    }
+
+    function listenRemoteCandidates(collectionName) {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db || !state.peerConnection) return null;
+      return firebase.onSnapshot(callCollectionRef(collectionName), snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type !== "added") return;
+          const data = change.doc.data();
+          if (!data?.candidate) return;
+          state.peerConnection.addIceCandidate(new RTCIceCandidate(data)).catch(error => {
+            console.warn("Falha ao adicionar ICE candidate", error);
           });
+        });
+      }, error => console.warn("Falha ao ouvir ICE candidates", error));
+    }
+
+    function listenForAnswer() {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db || state.rtcAnswerUnsubscribe) return;
+      state.rtcAnswerUnsubscribe = firebase.onSnapshot(callDocRef(), async snapshot => {
+        const data = snapshot.data();
+        if (data?.status === "encerrada") {
+          cleanupRtc(false);
+          return;
+        }
+        if (!data?.answer || !state.peerConnection || state.rtcRemoteDescriptionSet) return;
+        try {
+          await state.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          state.rtcRemoteDescriptionSet = true;
+          setRtcStatus("Cliente conectado");
+        } catch (error) {
+          console.warn("Falha ao aplicar answer", error);
+          setRtcStatus("Erro ao conectar cliente");
+        }
+      }, error => console.warn("Falha ao ouvir answer", error));
+    }
+
+    async function startWebRtcAsOperator() {
+      if (!window.RTCPeerConnection) throw new Error("Este navegador não suporta WebRTC");
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) throw new Error("Realtime Database ainda não conectou");
+
+      state.rtcRole = "operator";
+      await cleanupRtc(false);
+      state.rtcRole = "operator";
+      await clearRtcSignalData();
+
+      const pc = createPeerConnection("callerCandidates");
+      await addLocalTracks(pc);
+
+      state.rtcCandidateUnsubscribe = listenRemoteCandidates("calleeCandidates");
+      listenForAnswer();
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await publishRtcStatus({
+        status: "aguardando_cliente",
+        offer: { type: offer.type, sdp: offer.sdp },
+        answer: null,
+        operatorUid: state.firebaseUser?.uid || null,
+        operatorEmail: state.firebaseUser?.email || null
+      });
+
+      document.querySelector(".call-stage")?.classList.add("webrtc-active", "camera-active");
+      setRtcStatus("Aguardando cliente");
+    }
+
+    async function joinWebRtcAsClient(callData) {
+      if (state.joiningCall || state.peerConnection || !callData?.offer) return;
+      if (!window.RTCPeerConnection) {
+        setRtcStatus("Navegador sem WebRTC");
+        return;
+      }
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) return;
+
+      state.joiningCall = true;
+      state.rtcRole = "client";
+      try {
+        const pc = createPeerConnection("calleeCandidates");
+        await addLocalTracks(pc);
+        state.rtcCallerCandidateUnsubscribe = listenRemoteCandidates("callerCandidates");
+
+        await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await publishRtcStatus({
+          status: "ao_vivo",
+          answer: { type: answer.type, sdp: answer.sdp },
+          clientUid: state.firebaseUser?.uid || null,
+          clientEmail: state.firebaseUser?.email || null
+        });
+
+        els.clientVideoStage?.classList.add("webrtc-active", "camera-active");
+        setRtcStatus("Conectando vídeo...");
+      } catch (error) {
+        console.warn("Falha ao entrar na chamada WebRTC", error);
+        setRtcStatus("Não foi possível entrar na chamada");
+        showToast(error?.message || "Falha na videochamada");
+        cleanupRtc(false);
+      } finally {
+        state.joiningCall = false;
+      }
+    }
+
+    function listenWebRtcCallStatus() {
+      const firebase = window.firebasePortal;
+      if (state.role !== "client" || !firebase?.db || state.rtcCallUnsubscribe) return;
+      state.rtcCallUnsubscribe = firebase.onSnapshot(callDocRef(), snapshot => {
+        const data = snapshot.data();
+        if (data?.provider === "webrtc" && data?.status !== "encerrada" && data?.offer) {
+          joinWebRtcAsClient(data);
         }
         if (data?.status === "encerrada") {
-          disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+          cleanupRtc(false);
           setRtcStatus("Chamada encerrada");
         }
       }, error => {
-        console.warn("Jitsi call listener failed", error);
+        console.warn("Falha ao ouvir status da chamada", error);
+        setRtcStatus("Erro ao ouvir chamada");
       });
-    }
-
-    async function publishJitsiCallStatus(status) {
-      const firebase = window.firebasePortal;
-      if (!firebase?.db) return;
-      await firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode), {
-        roomCode: state.roomCode,
-        provider: "jitsi",
-        status,
-        roomName: state.jitsiRoomName || jitsiSafeRoomName(),
-        roomUrl: jitsiRoomUrl(state.jitsiRoomName),
-        operatorUid: state.firebaseUser?.uid || null,
-        operatorEmail: state.firebaseUser?.email || null,
-        updatedAt: firebase.serverTimestamp()
-      }, { merge: true });
     }
 
     async function startCall() {
       if (!state.callStartedAt) {
         state.callStartedAt = Date.now();
-        els.sessionStatus.textContent = "Chamada Jitsi em andamento";
+        els.sessionStatus.textContent = "Videochamada em andamento";
         state.timerId = window.setInterval(updateTimer, 1000);
         updateTimer();
       }
 
       try {
-        await startJitsiAsOperator();
-        await publishJitsiCallStatus("ao_vivo").catch(error => {
-          console.warn("Não foi possível salvar status da chamada no Realtime Database", error);
-          showToast("Jitsi iniciou, mas não salvou status no banco");
-        });
-        setRtcStatus("Jitsi ao vivo");
-        showToast("Sala Jitsi iniciada na tela de vídeo");
+        await startWebRtcAsOperator();
+        showToast("Videochamada iniciada");
       } catch (error) {
-        console.warn("Jitsi start failed", error);
-        setRtcStatus("Erro no Jitsi");
-        showToast(error?.message || "Não foi possível carregar o Jitsi na tela de vídeo");
+        console.warn("WebRTC start failed", error);
+        setRtcStatus("Erro na videochamada");
+        showToast(error?.message || "Não foi possível iniciar a videochamada");
       }
     }
 
     async function startScreenShare() {
-      if (state.jitsiOperatorApi) {
-        state.jitsiOperatorApi.executeCommand("toggleShareScreen");
-        showToast("Compartilhamento pelo Jitsi");
+      if (!state.peerConnection || state.rtcRole !== "operator") {
+        showToast("Inicie a videochamada primeiro");
         return;
       }
-      if (els.operatorJitsiStage?.querySelector("iframe")) {
-        showToast("Use o botão de compartilhar tela dentro do Jitsi integrado");
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        showToast("Compartilhamento não suportado neste navegador");
         return;
       }
-      showToast("Inicie a chamada Jitsi primeiro");
+      try {
+        state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        const screenTrack = state.screenStream.getVideoTracks()[0];
+        const sender = state.peerConnection.getSenders().find(item => item.track?.kind === "video");
+        if (sender && screenTrack) {
+          state.rtcCurrentScreenTrack = screenTrack;
+          await sender.replaceTrack(screenTrack);
+          els.screenBtn?.classList.add("active");
+          document.querySelector(".call-stage")?.classList.add("screen-active");
+          setRtcStatus("Compartilhando tela");
+          screenTrack.onended = () => stopScreenShare();
+        }
+      } catch (error) {
+        console.warn("Screen share failed", error);
+        showToast("Compartilhamento cancelado");
+      }
     }
 
     async function stopScreenShare() {
-      if (state.jitsiOperatorApi && els.screenBtn?.classList.contains("active")) {
-        state.jitsiOperatorApi.executeCommand("toggleShareScreen");
+      const screenTrack = state.rtcCurrentScreenTrack;
+      state.rtcCurrentScreenTrack = null;
+      if (screenTrack) {
+        screenTrack.onended = null;
+        screenTrack.stop?.();
+      }
+      state.screenStream?.getTracks()?.forEach(track => {
+        if (track !== screenTrack) track.stop?.();
+      });
+      state.screenStream = null;
+
+      const cameraTrack = state.cameraStream?.getVideoTracks()?.[0];
+      const sender = state.peerConnection?.getSenders?.().find(item => item.track?.kind === "video");
+      if (sender && cameraTrack) {
+        await sender.replaceTrack(cameraTrack).catch(error => console.warn("Falha ao voltar câmera", error));
       }
       els.screenBtn?.classList.remove("active");
       document.querySelector(".call-stage")?.classList.remove("screen-active");
+      setRtcStatus("Videochamada em andamento");
     }
 
     function toggleScreenShare() {
-      startScreenShare();
+      if (els.screenBtn?.classList.contains("active")) {
+        stopScreenShare();
+      } else {
+        startScreenShare();
+      }
     }
 
     async function endCall() {
-      if (state.timerId) {
-        window.clearInterval(state.timerId);
+      if (state.rtcRole === "operator" || state.role === "operator") {
+        await publishRtcStatus({ status: "encerrada" }).catch(error => console.warn("Falha ao encerrar chamada no banco", error));
       }
+      cleanupRtc(true);
+      showToast("Videochamada encerrada");
+    }
+
+    function cleanupRtc(resetStatus = true) {
+      if (state.timerId) window.clearInterval(state.timerId);
       state.timerId = null;
       state.callStartedAt = null;
-      els.sessionStatus.textContent = "Sessão pronta";
-      els.sessionTime.textContent = "00:00";
-      await publishJitsiCallStatus("encerrada").catch(error => console.warn("End Jitsi save failed", error));
-      disposeJitsiApi("jitsiOperatorApi", els.operatorJitsiStage);
-      disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+      if (els.sessionStatus) els.sessionStatus.textContent = "Sessão pronta";
+      if (els.sessionTime) els.sessionTime.textContent = "00:00";
+
+      const unsubscribeKeys = [
+        "rtcAnswerUnsubscribe",
+        "rtcCandidateUnsubscribe",
+        "rtcCallerCandidateUnsubscribe"
+      ];
+      if (resetStatus) unsubscribeKeys.push("rtcCallUnsubscribe");
+      unsubscribeKeys.forEach(key => {
+        if (typeof state[key] === "function") {
+          try { state[key](); } catch (error) { console.warn("Falha ao remover listener", key, error); }
+        }
+        state[key] = null;
+      });
+
+      state.peerConnection?.getSenders?.().forEach(sender => sender.track?.stop?.());
+      try { state.peerConnection?.close?.(); } catch (error) { console.warn("Falha ao fechar peer", error); }
+      state.peerConnection = null;
+      state.remoteStream?.getTracks?.().forEach(track => track.stop());
+      state.remoteStream = null;
+      state.cameraStream?.getTracks?.().forEach(track => track.stop());
+      state.cameraStream = null;
+      state.screenStream?.getTracks?.().forEach(track => track.stop());
+      state.screenStream = null;
+      state.rtcCurrentScreenTrack = null;
+      state.rtcRemoteDescriptionSet = false;
+      state.joiningCall = false;
+
+      if (els.localVideo) els.localVideo.srcObject = null;
+      if (els.operatorRemoteVideo) els.operatorRemoteVideo.srcObject = null;
+      if (els.clientOperatorVideo) els.clientOperatorVideo.srcObject = null;
+      if (els.clientLocalVideo) els.clientLocalVideo.srcObject = null;
+      els.operatorPreview?.classList.remove("active");
+      document.querySelector(".call-stage")?.classList.remove("webrtc-active", "camera-active", "screen-active");
+      els.clientVideoStage?.classList.remove("webrtc-active", "camera-active", "screen-active");
       els.cameraBtn?.classList.remove("active");
       els.micBtn?.classList.remove("active");
       els.screenBtn?.classList.remove("active");
-      setRtcStatus("Pronta");
-      showToast("Chamada Jitsi encerrada");
+
+      if (resetStatus) setRtcStatus("Pronta");
     }
 
     function updateTimer() {
@@ -4225,22 +4365,34 @@
     }
 
     function toggleControl(button) {
-      if (button === els.cameraBtn && state.jitsiOperatorApi) {
-        state.jitsiOperatorApi.executeCommand("toggleVideo");
-        button.classList.toggle("active");
+      if (button === els.cameraBtn) {
+        const videoTracks = state.cameraStream?.getVideoTracks?.() || [];
+        if (!videoTracks.length) {
+          showToast("Inicie a videochamada primeiro");
+          return;
+        }
+        const active = !videoTracks.every(track => track.enabled);
+        videoTracks.forEach(track => { track.enabled = active; });
+        button.classList.toggle("active", active);
         return;
       }
-      if (button === els.micBtn && state.jitsiOperatorApi) {
-        state.jitsiOperatorApi.executeCommand("toggleAudio");
-        button.classList.toggle("active");
+      if (button === els.micBtn) {
+        const audioTracks = state.cameraStream?.getAudioTracks?.() || [];
+        if (!audioTracks.length) {
+          showToast("Inicie a videochamada primeiro");
+          return;
+        }
+        const active = !audioTracks.every(track => track.enabled);
+        audioTracks.forEach(track => { track.enabled = active; });
+        button.classList.toggle("active", active);
         return;
       }
       button.classList.toggle("active");
     }
 
     function syncClientCamera() {
-      if (state.jitsiClientApi || state.jitsiOperatorApi) return;
-      els.clientVideoStage?.classList.remove("camera-active", "screen-active");
+      if (state.peerConnection || state.remoteStream) return;
+      els.clientVideoStage?.classList.remove("camera-active", "screen-active", "webrtc-active");
       if (els.clientOperatorVideo) {
         els.clientOperatorVideo.srcObject = null;
         els.clientOperatorVideo.pause?.();
@@ -4319,7 +4471,7 @@
       renderClientOrder();
       showcaseProduct(products.find(product => product.id === state.featuredProductId) || products[0]);
       syncClientCamera();
-      listenJitsiCallStatus();
+      listenWebRtcCallStatus();
     }
 
     function signIn(role, name, user = null) {
@@ -5190,7 +5342,6 @@
       }
     });
 
-    ensureJitsiOpenButton();
     initializeFromUrl();
     els.roomCodeLabel.textContent = state.roomCode;
     renderCatalog();
