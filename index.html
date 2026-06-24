@@ -1,0 +1,5410 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sala Virtual Têxtil Pro</title>
+  <style>
+    :root {
+      --bg: #f4f6f3;
+      --surface: #ffffff;
+      --surface-2: #f7f9f6;
+      --ink: #17211d;
+      --muted: #66736d;
+      --line: #dfe6e1;
+      --line-strong: #cbd6cf;
+      --accent: #16715a;
+      --accent-2: #0d5c88;
+      --danger: #b83a35;
+      --warning: #a96a08;
+      --shadow: 0 16px 40px rgba(35, 52, 45, 0.12);
+      --radius: 8px;
+      --soft-radius: 6px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .is-locked {
+      display: none !important;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .login-screen {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(360px, 480px);
+      background: #eef3f0;
+      overflow: hidden;
+    }
+
+    .login-visual {
+      position: relative;
+      display: grid;
+      align-content: center;
+      gap: 28px;
+      padding: 46px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(18, 54, 48, 0.96), rgba(21, 43, 65, 0.94)),
+        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: auto, 28px 28px;
+      min-width: 0;
+    }
+
+    .login-visual h1 {
+      margin: 0;
+      font-size: 36px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      max-width: 580px;
+    }
+
+    .login-visual p {
+      margin: 0;
+      max-width: 560px;
+      color: rgba(255,255,255,0.76);
+      line-height: 1.55;
+    }
+
+    .login-showcase {
+      width: min(420px, 80%);
+      aspect-ratio: 1.28;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 24px 58px rgba(0,0,0,0.2);
+    }
+
+    .login-showcase .garment {
+      width: 170px;
+      height: 196px;
+    }
+
+    .login-card {
+      align-self: center;
+      justify-self: center;
+      width: min(420px, calc(100% - 40px));
+      display: grid;
+      gap: 18px;
+      padding: 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .login-card h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .login-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      background: var(--surface-2);
+    }
+
+    .login-tab {
+      border: 0;
+      min-height: 36px;
+      border-radius: var(--soft-radius);
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .login-tab.active {
+      color: #fff;
+      background: #173c36;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .login-note {
+      margin: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .login-note strong {
+      color: var(--ink);
+    }
+
+    .firebase-status {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      background: #f8faf9;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .firebase-status.ok {
+      border-color: rgba(22, 113, 90, 0.28);
+      background: rgba(22, 113, 90, 0.08);
+      color: #0c5b47;
+    }
+
+    .firebase-status.warn {
+      border-color: rgba(169, 106, 8, 0.28);
+      background: rgba(169, 106, 8, 0.08);
+      color: #7a4b04;
+    }
+
+    .firebase-status.danger {
+      border-color: rgba(184, 58, 53, 0.28);
+      background: rgba(184, 58, 53, 0.08);
+      color: #8a2925;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .form-field span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--soft-radius);
+      padding: 0 10px;
+      outline: none;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .form-field textarea {
+      min-height: 74px;
+      padding: 10px;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(22,113,90,0.12);
+    }
+
+    .app {
+      height: 100vh;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .client-app {
+      height: 100vh;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+      background: #f4f6f3;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #173c36;
+      border-radius: var(--radius);
+      box-shadow: inset 0 -10px 18px rgba(255,255,255,0.08);
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(22, 113, 90, 0.13);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .account-chip {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--soft-radius);
+      background: #fff;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .account-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #173c36;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .icon-button,
+    .control-button {
+      height: 38px;
+      min-width: 38px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: var(--soft-radius);
+      display: inline-grid;
+      place-items: center;
+      transition: 160ms ease;
+    }
+
+    .icon-button:hover,
+    .control-button:hover,
+    .secondary-action:hover,
+    .product-add:hover {
+      border-color: #9db0a7;
+      transform: translateY(-1px);
+    }
+
+    .primary-action,
+    .secondary-action,
+    .product-add {
+      border-radius: var(--soft-radius);
+      min-height: 38px;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 13px;
+      font-weight: 700;
+      transition: 160ms ease;
+    }
+
+    .primary-action {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .primary-action:hover {
+      background: #105f4b;
+      transform: translateY(-1px);
+    }
+
+
+    .google-action {
+      min-height: 42px;
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--soft-radius);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 13px;
+      color: #1f2933;
+      background: #fff;
+      font-weight: 800;
+      transition: 160ms ease;
+    }
+
+    .google-action:hover {
+      border-color: #9db0a7;
+      box-shadow: 0 10px 24px rgba(37, 48, 43, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .google-mark {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+
+    .auth-divider {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      height: 1px;
+      background: var(--line);
+    }
+
+    .secondary-action {
+      color: var(--ink);
+      background: var(--surface);
+      border-color: var(--line-strong);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(560px, 54vw) minmax(280px, 1fr) minmax(280px, 340px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .client-layout {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) minmax(320px, 380px);
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .client-live {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      gap: 0;
+      padding: 12px;
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .client-live > .panel-title {
+      display: none;
+    }
+
+    .client-video-stage {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.2);
+      background:
+        linear-gradient(135deg, rgba(18, 54, 48, 0.96), rgba(21, 43, 65, 0.95)),
+        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: auto, 28px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .client-operator-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      background: #10251f;
+    }
+
+    .client-video-stage.camera-active .client-operator-video {
+      display: block;
+    }
+
+    .client-video-stage.camera-active .client-showcase-piece,
+    .client-video-stage.camera-active .client-camera-placeholder {
+      display: none;
+    }
+
+    .client-camera-placeholder {
+      position: absolute;
+      inset: 72px 28px 172px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: rgba(255,255,255,0.78);
+      z-index: 1;
+    }
+
+    .client-camera-placeholder div {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .client-camera-placeholder .icon {
+      width: 42px;
+      height: 42px;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .client-showcase-piece {
+      position: absolute;
+      inset: 72px 28px 172px;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 28px 36px rgba(0,0,0,0.3));
+    }
+
+    .client-showcase-piece .garment {
+      width: min(58vw, 520px);
+      height: min(48vh, 500px);
+    }
+
+    .client-video-caption {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      right: 120px;
+      color: #fff;
+      display: grid;
+      gap: 4px;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.38);
+    }
+
+    .client-video-caption strong {
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .client-video-caption span {
+      color: rgba(255,255,255,0.78);
+      font-size: 13px;
+    }
+
+    .client-operator-badge {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(160deg, #d48b45, #7b3659 58%, #243c59);
+      border: 2px solid rgba(255,255,255,0.78);
+    }
+
+    .client-live-footer {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 154px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #fff;
+    }
+
+    .client-live-footer span {
+      color: rgba(255,255,255,0.78);
+      font-size: 13px;
+    }
+
+    .client-catalog-strip {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(150px, 190px);
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .client-live > section[aria-label="Catalogo do lojista"] {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      z-index: 5;
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.46);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 18px 38px rgba(0,0,0,0.18);
+      backdrop-filter: blur(12px);
+    }
+
+    .client-live > section[aria-label="Catalogo do lojista"] .panel-title h2 {
+      font-size: 13px;
+    }
+
+    .client-catalog-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .client-catalog-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(22,113,90,0.12);
+    }
+
+    .client-catalog-card h3 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .client-catalog-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .client-mini-visual {
+      height: 62px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: var(--soft-radius);
+      background: var(--visual-bg, #eef3f0);
+    }
+
+    .client-mini-visual .garment {
+      width: 44px;
+      height: 52px;
+    }
+
+    .client-side {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 14px;
+      padding: 18px;
+      overflow: auto;
+      background: #fbfcfb;
+    }
+
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      border-right: 1px solid var(--line);
+      background: rgba(255,255,255,0.58);
+    }
+
+    .video-panel {
+      display: grid;
+      grid-template-rows: auto auto auto auto;
+      gap: 14px;
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      color: #0c5b47;
+      background: #dff0ea;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .call-stage {
+      position: relative;
+      min-height: 560px;
+      height: min(72vh, 680px);
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(18, 54, 48, 0.94), rgba(21, 43, 65, 0.94)),
+        radial-gradient(circle at 25% 20%, rgba(255,255,255,0.24), transparent 25%);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .customer-video {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .showcase-piece {
+      width: min(68%, 420px);
+      min-width: 260px;
+      aspect-ratio: 0.82;
+      display: grid;
+      place-items: center;
+      z-index: 1;
+      filter: drop-shadow(0 24px 28px rgba(0,0,0,0.28));
+    }
+
+    .showcase-piece .garment {
+      width: 100%;
+      height: 100%;
+    }
+
+    .customer-avatar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+      background:
+        linear-gradient(160deg, #d48b45, #7b3659 58%, #243c59);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      z-index: 3;
+    }
+
+    .call-label {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    }
+
+    .call-label strong {
+      font-size: 14px;
+    }
+
+    .call-label span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+    }
+
+    .operator-preview {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: 142px;
+      height: 104px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: #dbe6e2;
+      background: #10251f;
+      border: 2px solid rgba(255,255,255,0.84);
+      border-radius: var(--soft-radius);
+    }
+
+    .showcase-caption {
+      position: absolute;
+      left: 14px;
+      right: 170px;
+      top: 14px;
+      z-index: 2;
+      color: #fff;
+      display: grid;
+      gap: 3px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    }
+
+    .showcase-caption strong {
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .showcase-caption span {
+      color: rgba(255,255,255,0.78);
+      font-size: 12px;
+    }
+
+    .operator-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .operator-preview.active video {
+      display: block;
+    }
+
+    .operator-preview.active .preview-icon {
+      display: none;
+    }
+
+    .call-controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .control-button.active {
+      color: #fff;
+      background: #173c36;
+      border-color: #173c36;
+    }
+
+    .client-card,
+    .chat-box,
+    .summary-card,
+    .order-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .client-card {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .client-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 13px;
+    }
+
+    .client-row span {
+      color: var(--muted);
+    }
+
+    .client-row strong {
+      text-align: right;
+    }
+
+    .chat-box {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .chat-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .chat-feed {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      padding: 14px;
+      overflow: auto;
+      max-height: 210px;
+    }
+
+    .bubble {
+      max-width: 86%;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .bubble.client {
+      background: #edf3f0;
+      justify-self: start;
+    }
+
+    .bubble.operator {
+      color: #fff;
+      background: #235c50;
+      justify-self: end;
+    }
+
+    .chat-input {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .chat-input input,
+    .search input,
+    .filterbar select,
+    .product-controls select,
+    .product-controls input {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--soft-radius);
+      background: #fff;
+      color: var(--ink);
+      min-height: 38px;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .chat-input input:focus,
+    .search input:focus,
+    .filterbar select:focus,
+    .product-controls select:focus,
+    .product-controls input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(22,113,90,0.12);
+    }
+
+    .catalog {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      background: var(--bg);
+    }
+
+    .catalog-head {
+      min-width: 0;
+      padding: 18px 20px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .catalog-side {
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .catalog-head h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .catalog-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .catalog-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(86px, auto));
+      gap: 8px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      min-width: 92px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 16px;
+    }
+
+    .filterbar {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(210px, 1fr) 160px 150px 140px;
+      gap: 10px;
+      padding: 0 20px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .search {
+      position: relative;
+    }
+
+    .search svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .search input {
+      padding-left: 38px;
+    }
+
+    .catalog-grid {
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      padding: 18px 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      grid-auto-rows: max-content;
+      gap: 14px;
+      align-items: start;
+      align-content: start;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 150px auto;
+      min-width: 0;
+      transition: 160ms ease;
+    }
+
+    .product-card:hover {
+      border-color: #9eb2a8;
+      box-shadow: 0 12px 24px rgba(37, 48, 43, 0.09);
+      transform: translateY(-1px);
+    }
+
+    .product-visual {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      background: var(--visual-bg, #eef3ee);
+    }
+
+    .product-visual::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.14) 1px, transparent 1px);
+      background-size: 18px 18px;
+      opacity: 0.55;
+    }
+
+    .garment {
+      position: relative;
+      width: 98px;
+      height: 112px;
+      z-index: 1;
+      filter: drop-shadow(0 12px 12px rgba(25, 34, 30, 0.14));
+    }
+
+    .garment svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .stock-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      min-height: 25px;
+      padding: 0 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      color: #12362e;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .product-body {
+      display: grid;
+      gap: 12px;
+      padding: 13px;
+    }
+
+    .product-main {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .product-main h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .product-main p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .price {
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 900;
+      color: #103f35;
+    }
+
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--line-strong);
+    }
+
+    .grade {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .grade span {
+      min-width: 28px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      background: var(--surface-2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .product-controls {
+      display: grid;
+      grid-template-columns: 1fr 76px;
+      gap: 8px;
+    }
+
+    .product-controls .full {
+      grid-column: 1 / -1;
+    }
+
+    .product-add {
+      width: 100%;
+      grid-column: 1 / -1;
+      color: #fff;
+      background: #173c36;
+      border-color: #173c36;
+    }
+
+    .order-panel {
+      border-right: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 14px;
+      padding: 18px;
+      background: #fbfcfb;
+      overflow: auto;
+    }
+
+    .summary-card {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .summary-total span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-total strong {
+      font-size: 24px;
+      color: #123f36;
+      white-space: nowrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      padding: 9px;
+      background: var(--surface-2);
+    }
+
+    .summary-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 15px;
+    }
+
+    .order-tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .order-card {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .order-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .order-head h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .order-list {
+      overflow: auto;
+      min-height: 240px;
+      display: grid;
+      align-content: start;
+    }
+
+    .empty-order {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      min-height: 240px;
+    }
+
+    .empty-order strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .order-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .order-line h3 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .order-line p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .line-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .line-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .line-actions {
+      display: grid;
+      grid-template-columns: 32px 42px 32px;
+      align-items: center;
+      gap: 4px;
+      align-self: start;
+    }
+
+    .qty-button,
+    .remove-button {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      border-radius: var(--soft-radius);
+      color: var(--ink);
+    }
+
+    .remove-button {
+      color: var(--danger);
+      grid-column: 1 / -1;
+      justify-self: end;
+      margin-top: 6px;
+    }
+
+    .line-qty {
+      text-align: center;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .grade-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .grade-card h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .grade-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .grade-table th,
+    .grade-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .grade-table th {
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 10px;
+    }
+
+    .footer-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      background: #142a25;
+      color: #fff;
+      border-radius: var(--soft-radius);
+      padding: 11px 14px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      transition: 180ms ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 22px;
+      background: rgba(13, 25, 21, 0.45);
+      z-index: 90;
+    }
+
+    .modal.open {
+      display: grid;
+    }
+
+    .modal-card {
+      width: min(720px, 100%);
+      max-height: 86vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+
+    .modal-card.wide {
+      width: min(980px, 100%);
+    }
+
+    .modal-head,
+    .modal-body,
+    .modal-actions {
+      padding: 16px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 10px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .proposal-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .proposal-row:last-child {
+      border-bottom: 0;
+    }
+
+    .proposal-row span {
+      color: var(--muted);
+    }
+
+    .proposal-row strong {
+      text-align: right;
+    }
+
+    .invite-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .invite-box {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--soft-radius);
+      background: var(--surface-2);
+      min-width: 0;
+    }
+
+    .invite-box span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .invite-box strong {
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    .product-admin-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(280px, 360px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .product-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .product-form-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    .product-admin-list {
+      display: grid;
+      align-content: start;
+      max-height: 520px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-2);
+    }
+
+    .admin-product-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 11px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .admin-product-line:last-child {
+      border-bottom: 0;
+    }
+
+    .admin-product-line h3 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .admin-product-line p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .admin-actions {
+      display: flex;
+      align-items: start;
+      gap: 6px;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex: 0 0 auto;
+    }
+
+    .icon.fill {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    @media (max-width: 1220px) {
+      .layout {
+        grid-template-columns: minmax(520px, 56vw) minmax(0, 1fr);
+        overflow: auto;
+      }
+
+      .client-layout {
+        grid-template-columns: minmax(0, 1fr);
+        overflow: auto;
+      }
+
+      .client-live {
+        min-height: 760px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .order-panel {
+        grid-column: 1 / -1;
+        grid-template-columns: 340px 1fr;
+        grid-template-rows: auto 1fr auto;
+        align-items: start;
+      }
+
+      .order-panel .panel-title {
+        grid-column: 1 / -1;
+      }
+
+      .order-card {
+        min-height: 370px;
+      }
+
+      .footer-actions {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 1340px) and (min-width: 881px) {
+      .catalog-head {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .catalog-side {
+        justify-items: stretch;
+      }
+
+      .catalog-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .filterbar {
+        grid-template-columns: minmax(0, 1fr) minmax(130px, 160px);
+      }
+    }
+
+    @media (max-width: 880px) {
+      .login-screen {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .login-visual {
+        padding: 28px;
+      }
+
+      .login-visual h1 {
+        font-size: 30px;
+      }
+
+      .login-card {
+        margin: 22px 0 30px;
+      }
+
+      .app {
+        height: auto;
+        overflow: visible;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        position: relative;
+      }
+
+      .session-meta,
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .client-app {
+        height: auto;
+        overflow: visible;
+      }
+
+      .client-layout {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .client-live {
+        min-height: 720px;
+        overflow: visible;
+      }
+
+      .client-video-stage {
+        min-height: 650px;
+      }
+
+      .client-side {
+        overflow: visible;
+      }
+
+      .panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .video-panel {
+        grid-template-rows: auto auto auto auto;
+        overflow: visible;
+      }
+
+      .call-stage {
+        min-height: 520px;
+        height: 62vh;
+      }
+
+      .catalog-head,
+      .filterbar {
+        grid-template-columns: 1fr;
+      }
+
+      .catalog-side {
+        justify-items: stretch;
+      }
+
+      .catalog-stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .order-panel {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .product-admin-layout,
+      .invite-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .topbar,
+      .video-panel,
+      .order-panel {
+        padding: 14px;
+      }
+
+      .brand h1 {
+        white-space: normal;
+      }
+
+      .catalog-head,
+      .filterbar,
+      .catalog-grid {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .catalog-stats,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-card {
+        grid-template-rows: 140px auto;
+      }
+
+      .product-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .call-controls {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .login-visual {
+        padding: 22px;
+      }
+
+      .login-showcase {
+        width: 100%;
+      }
+
+      .product-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .operator-preview {
+        width: 110px;
+        height: 82px;
+      }
+
+      .showcase-caption {
+        right: 132px;
+      }
+
+      .client-live {
+        min-height: 640px;
+        padding: 14px;
+      }
+
+      .client-video-stage {
+        min-height: 580px;
+      }
+
+      .client-video-caption strong {
+        font-size: 17px;
+      }
+
+      .client-showcase-piece {
+        inset: 80px 12px 170px;
+      }
+
+      .client-camera-placeholder {
+        inset: 80px 12px 170px;
+      }
+
+      .client-showcase-piece .garment {
+        width: min(84vw, 360px);
+        height: min(48vh, 420px);
+      }
+
+      .client-live-footer {
+        bottom: 148px;
+      }
+
+      .client-live > section[aria-label="Catalogo do lojista"] {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+
+    /* ===== Atualização Pro v2: visual, UX e responsividade ===== */
+    :root {
+      --bg: #eef3f0;
+      --surface: #ffffff;
+      --surface-2: #f6f8f6;
+      --ink: #10201b;
+      --muted: #65746d;
+      --line: rgba(18, 54, 48, 0.1);
+      --line-strong: rgba(18, 54, 48, 0.18);
+      --accent: #126b55;
+      --accent-2: #0c6e98;
+      --gold: #d69a4d;
+      --danger: #c83b36;
+      --warning: #b86d05;
+      --shadow: 0 22px 70px rgba(21, 38, 32, 0.12);
+      --shadow-soft: 0 12px 30px rgba(21, 38, 32, 0.08);
+      --radius: 22px;
+      --soft-radius: 14px;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(18, 107, 85, 0.14), transparent 34vw),
+        radial-gradient(circle at bottom right, rgba(12, 110, 152, 0.10), transparent 38vw),
+        var(--bg);
+    }
+
+    .login-screen {
+      background:
+        linear-gradient(135deg, rgba(238, 243, 240, 0.82), rgba(255,255,255,0.92)),
+        radial-gradient(circle at 14% 22%, rgba(214, 154, 77, 0.18), transparent 32vw);
+    }
+
+    .login-visual {
+      padding: clamp(30px, 6vw, 76px);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(214, 154, 77, 0.24), transparent 24vw),
+        linear-gradient(145deg, #102d27 0%, #143a4b 56%, #0b1d29 100%);
+      isolation: isolate;
+    }
+
+    .login-visual::before,
+    .client-video-stage::before,
+    .call-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.065) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.055) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(135deg, rgba(0,0,0,0.9), transparent 76%);
+    }
+
+    .login-visual h1 {
+      font-size: clamp(36px, 6vw, 72px);
+      letter-spacing: -0.055em;
+    }
+
+    .login-visual p {
+      max-width: 640px;
+      font-size: 17px;
+    }
+
+    .login-showcase,
+    .login-card,
+    .summary-card,
+    .client-card,
+    .chat-box,
+    .order-card,
+    .grade-card,
+    .product-card,
+    .invite-box,
+    .modal-card,
+    .approval-line,
+    .journey-card,
+    .live-status-card {
+      border-color: rgba(18, 54, 48, 0.1);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .login-card {
+      padding: clamp(22px, 3vw, 34px);
+      border-radius: 26px;
+    }
+
+    .login-card h2,
+    .catalog-head h2,
+    .panel-title h2 {
+      letter-spacing: -0.03em;
+    }
+
+    .login-tab,
+    .primary-action,
+    .secondary-action,
+    .icon-button,
+    .control-button,
+    .product-add {
+      min-height: 42px;
+      border-radius: 999px;
+    }
+
+    .primary-action {
+      background: linear-gradient(135deg, #126b55, #0a896d);
+      border-color: transparent;
+      box-shadow: 0 12px 22px rgba(18, 107, 85, 0.22);
+    }
+
+    .primary-action:hover {
+      background: linear-gradient(135deg, #0f604c, #087e64);
+    }
+
+    .secondary-action,
+    .icon-button,
+    .control-button,
+    .account-chip {
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar {
+      grid-template-columns: minmax(220px, 1fr) auto minmax(320px, auto);
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 30px rgba(20, 42, 35, 0.07);
+    }
+
+    .brand-mark,
+    .account-avatar {
+      background: linear-gradient(145deg, #102d27, #126b55);
+    }
+
+    .layout {
+      grid-template-columns: minmax(440px, 45vw) minmax(360px, 1fr) minmax(310px, 380px);
+      gap: 0;
+    }
+
+    .panel,
+    .catalog,
+    .order-panel,
+    .client-side {
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(16px);
+    }
+
+    .catalog-grid {
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .product-card {
+      border-radius: 22px;
+      grid-template-rows: 176px auto;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 48px rgba(21, 38, 32, 0.14);
+    }
+
+    .product-visual::after {
+      content: "";
+      position: absolute;
+      inset: auto 18px 14px 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(16, 32, 27, 0.12);
+      filter: blur(10px);
+    }
+
+    .summary-total strong,
+    .price {
+      color: #0d5948;
+    }
+
+    .tag.cloud-tag {
+      color: #704406;
+      background: #fff1d8;
+    }
+
+    .call-stage,
+    .client-video-stage {
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(214,154,77,0.24), transparent 28vw),
+        linear-gradient(145deg, #102d27, #143a4b 58%, #0b1d29);
+    }
+
+    .call-stage.screen-active,
+    .client-video-stage.screen-active {
+      background: #071512;
+    }
+
+    .operator-preview {
+      border-radius: 18px;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
+    }
+
+    .client-operator-video,
+    .remote-stage-video {
+      background: #071512;
+    }
+
+    .journey-card,
+    .live-status-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .journey-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .journey-step {
+      min-width: 0;
+      padding: 10px;
+      border-radius: 16px;
+      background: #f4f8f6;
+      border: 1px solid var(--line);
+    }
+
+    .journey-step strong {
+      display: block;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .journey-step span,
+    .live-status-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .live-status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .live-status-card .status-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8faf8;
+    }
+
+    .approval-list {
+      display: grid;
+      gap: 10px;
+      max-height: 56vh;
+      overflow: auto;
+    }
+
+    .approval-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .approval-line h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .approval-line p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .approval-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .danger-action {
+      color: #fff;
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .order-line {
+      background: rgba(255,255,255,0.76);
+    }
+
+    @media (max-width: 1220px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .video-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .top-actions,
+      .session-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+      .top-actions > *,
+      .session-meta > * {
+        min-width: 0;
+        width: 100%;
+      }
+      .account-chip {
+        justify-content: center;
+      }
+      .call-stage,
+      .client-video-stage {
+        min-height: 520px;
+      }
+      .journey-steps,
+      .live-status-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .approval-line {
+        grid-template-columns: 1fr;
+      }
+      .approval-actions {
+        justify-content: stretch;
+      }
+      .approval-actions button {
+        flex: 1;
+      }
+    }
+
+
+
+    /* Integração Jitsi Meet */
+    .jitsi-stage {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      overflow: hidden;
+      border-radius: inherit;
+      background: #071512;
+    }
+
+    .jitsi-stage iframe {
+      width: 100% !important;
+      height: 100% !important;
+      border: 0 !important;
+      display: block;
+      background: #071512;
+    }
+
+    .call-stage.jitsi-active > :not(.jitsi-stage),
+    .client-video-stage.jitsi-active > :not(.jitsi-stage) {
+      display: none !important;
+    }
+
+    .call-stage.jitsi-active .jitsi-stage,
+    .client-video-stage.jitsi-active .jitsi-stage {
+      display: block !important;
+    }
+
+    .call-stage.jitsi-active,
+    .client-video-stage.jitsi-active {
+      background: #071512;
+    }
+  </style>
+</head>
+<body>
+  <section class="login-screen" id="loginScreen" aria-label="Acesso">
+    <div class="login-visual">
+      <div>
+        <h1>Sala Virtual Têxtil Pro</h1>
+        <p>Atendimento por vídeo com catálogo, pedido em tempo real e convite seguro para o cliente entrar na reunião.</p>
+      </div>
+      <div class="login-showcase" aria-hidden="true">
+        <div class="garment">
+          <svg viewBox="0 0 120 140">
+            <path fill="#dfeee8" d="M35 18l25 11 25-11 24 25-17 20-9-8v69H37V55l-9 8-17-20 24-25z"></path>
+            <path fill="#93b6aa" d="M49 24l11 10 11-10 3 16-14 10-14-10 3-16z"></path>
+            <path stroke="rgba(23,60,54,.55)" stroke-width="3" d="M60 50v68"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h2>Entrar na sala</h2>
+      <p class="firebase-status warn" id="firebaseStatus">Conectando ao Firebase Realtime Database portal-f422a...</p>
+      <div class="login-tabs" role="tablist" aria-label="Tipo de acesso">
+        <button class="login-tab active" type="button" data-login-role="operator">Operador</button>
+        <button class="login-tab" type="button" data-login-role="client">Cliente lojista</button>
+        <button class="login-tab" type="button" data-login-role="register">Cadastro</button>
+      </div>
+
+      <form class="login-form" id="operatorLogin">
+        <label class="form-field">
+          <span>E-mail</span>
+          <input id="operatorUser" type="email" autocomplete="username" placeholder="operador@empresa.com.br">
+        </label>
+        <label class="form-field">
+          <span>Senha</span>
+          <input id="operatorPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada no Firebase">
+        </label>
+        <button class="primary-action" type="submit">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>
+          Acessar
+        </button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button class="google-action" id="operatorGoogleBtn" type="button">
+          <svg class="google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C41 35.5 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"></path></svg>
+          Entrar como operador com Google
+        </button>
+      </form>
+
+      <form class="login-form" id="clientLogin" hidden>
+        <label class="form-field" hidden>
+          <span>Nome</span>
+          <input id="clientLoginName" type="text" autocomplete="name">
+        </label>
+        <label class="form-field">
+          <span>E-mail</span>
+          <input id="clientRoomCode" type="email" autocomplete="username" placeholder="lojista@email.com">
+        </label>
+        <label class="form-field">
+          <span>Senha</span>
+          <input id="clientRoomPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada no Firebase">
+        </label>
+        <button class="primary-action" type="submit">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+          Conectar
+        </button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button class="google-action" id="clientGoogleBtn" type="button">
+          <svg class="google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C41 35.5 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"></path></svg>
+          Entrar como lojista com Google
+        </button>
+      </form>
+
+      <form class="login-form" id="registerForm" hidden>
+        <p class="login-note">
+          <strong>Cadastro com aprovação:</strong> a conta fica pendente no Firebase e só entra depois que você aprovar no Realtime Database.
+        </p>
+        <label class="form-field">
+          <span>Nome completo</span>
+          <input id="registerName" type="text" autocomplete="name" required placeholder="Nome do responsável">
+        </label>
+        <label class="form-field">
+          <span>Empresa / loja</span>
+          <input id="registerCompany" type="text" autocomplete="organization" required placeholder="Nome da loja">
+        </label>
+        <label class="form-field">
+          <span>CNPJ</span>
+          <input id="registerCnpj" type="text" inputmode="numeric" placeholder="00.000.000/0001-00">
+        </label>
+        <label class="form-field">
+          <span>Telefone / WhatsApp</span>
+          <input id="registerPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000">
+        </label>
+        <label class="form-field">
+          <span>Tipo de acesso solicitado</span>
+          <select id="registerRole">
+            <option value="client">Cliente lojista</option>
+            <option value="operator">Operador</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>E-mail</span>
+          <input id="registerEmail" type="email" autocomplete="username" required placeholder="email@empresa.com.br">
+        </label>
+        <label class="form-field">
+          <span>Senha</span>
+          <input id="registerPassword" type="password" autocomplete="new-password" required placeholder="Mínimo 6 caracteres">
+        </label>
+        <label class="form-field">
+          <span>Confirmar senha</span>
+          <input id="registerPasswordConfirm" type="password" autocomplete="new-password" required placeholder="Repita a senha">
+        </label>
+        <button class="primary-action" type="submit">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path></svg>
+          Solicitar cadastro
+        </button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button class="google-action" id="registerGoogleBtn" type="button">
+          <svg class="google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C41 35.5 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"></path></svg>
+          Solicitar cadastro com Google
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <div class="app is-locked" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M4 7l8-4 8 4-8 4-8-4z"></path>
+            <path d="M4 12l8 4 8-4"></path>
+            <path d="M4 17l8 4 8-4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Sala Virtual Têxtil Pro</h1>
+          <p>Atendimento ao vivo para pedidos de peças importadas</p>
+        </div>
+      </div>
+
+      <div class="session-meta">
+        <span class="status-dot"></span>
+        <span id="sessionStatus">Sessão pronta</span>
+        <strong id="roomCodeLabel">LIVE-4821</strong>
+        <strong id="sessionTime">00:00</strong>
+      </div>
+
+      <div class="top-actions">
+        <button class="secondary-action" id="viewClientBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M2 7h20"></path><path d="M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"></path><path d="M8 7V5a4 4 0 0 1 8 0v2"></path></svg>
+          Tela lojista
+        </button>
+        <button class="secondary-action" id="inviteBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path></svg>
+          Convidar
+        </button>
+        <button class="icon-button" id="productAdminBtn" type="button" title="Cadastrar peça" aria-label="Cadastrar peça">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"></path><path d="M12 7v10"></path><path d="M8 9l4 2 4-2"></path></svg>
+        </button>
+        <button class="secondary-action" id="approvalsBtn" type="button" title="Aprovar usuários" aria-label="Aprovar usuários">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11l2 2 4-4"></path></svg>
+          Aprovações
+        </button>
+        <button class="icon-button" id="shareOrderBtn" type="button" title="Compartilhar pedido" aria-label="Compartilhar pedido">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8h16v-8"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
+        </button>
+        <div class="account-chip" id="accountChip" aria-label="Conta logada">
+          <span class="account-avatar" id="accountAvatar">OP</span>
+          <span id="accountName">Operador</span>
+        </div>
+        <button class="icon-button" id="logoutBtn" type="button" title="Sair" aria-label="Sair">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+        </button>
+        <button class="primary-action" id="startCallBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.95.34 1.88.66 2.76a2 2 0 0 1-.45 2.11L8.05 9.86a16 16 0 0 0 6.09 6.09l1.27-1.27a2 2 0 0 1 2.11-.45c.88.32 1.81.54 2.76.66A2 2 0 0 1 22 16.92z"></path></svg>
+          Iniciar
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel video-panel" aria-label="Atendimento">
+        <div class="panel-title">
+          <h2>Chamada</h2>
+          <span class="tag"><span class="status-dot"></span> Ao vivo</span>
+        </div>
+
+        <section class="call-stage" aria-label="Video chamada">
+          <div class="jitsi-stage" id="operatorJitsiStage" hidden></div>
+          <div class="customer-video">
+            <div class="showcase-piece" id="showcasePiece"></div>
+            <div class="customer-avatar" id="customerAvatar">AM</div>
+          </div>
+          <div class="showcase-caption">
+            <strong id="showcaseName">Blazer Milano Alfaiataria</strong>
+            <span id="showcaseMeta">Azul marinho | Crepe premium</span>
+          </div>
+          <div class="call-label">
+            <strong id="customerNameDisplay">Lojista</strong>
+            <span>Cliente conectado</span>
+          </div>
+          <div class="operator-preview" id="operatorPreview">
+            <video id="localVideo" muted autoplay playsinline></video>
+            <svg class="icon preview-icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+          </div>
+        </section>
+
+        <div class="call-controls">
+          <button class="control-button active" id="micBtn" type="button" title="Microfone" aria-label="Microfone">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg>
+          </button>
+          <button class="control-button active" id="cameraBtn" type="button" title="Câmera" aria-label="Câmera">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+          </button>
+          <button class="control-button" id="screenBtn" type="button" title="Compartilhar tela" aria-label="Compartilhar tela">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path></svg>
+          </button>
+          <button class="control-button" id="endCallBtn" type="button" title="Encerrar chamada" aria-label="Encerrar chamada">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.95.34 1.88.66 2.76a2 2 0 0 1-.45 2.11L8.05 9.86"></path><path d="M16 2l6 6"></path><path d="M22 2l-6 6"></path></svg>
+          </button>
+        </div>
+
+        <section class="live-status-card" aria-label="Status da transmissão">
+          <div class="panel-title">
+            <h2>Transmissão</h2>
+            <span class="tag" id="rtcStatus">Pronta</span>
+          </div>
+          <div class="live-status-grid">
+            <div class="status-item"><strong>Câmera + áudio</strong><span>Captura real pelo navegador</span></div>
+            <div class="status-item"><strong>Firebase RTC</strong><span>Sinalização da sala ao vivo</span></div>
+            <div class="status-item"><strong>Tela</strong><span>Compartilhamento por getDisplayMedia</span></div>
+          </div>
+        </section>
+
+        <section class="client-card" aria-label="Cliente">
+          <div class="client-row"><span>Cliente</span><strong id="clientNameSummary">Lojista</strong></div>
+          <div class="client-row"><span>CNPJ</span><strong>42.815.320/0001-80</strong></div>
+          <div class="client-row"><span>Tabela</span><strong>Atacado Premium</strong></div>
+          <div class="client-row"><span>Condição</span><strong>30/45/60 dias</strong></div>
+        </section>
+
+        <section class="chat-box" aria-label="Chat">
+          <div class="chat-head">Chat da sala</div>
+          <div class="chat-feed" id="chatFeed">
+            <div class="bubble client">Gostei do blazer em azul marinho. Tem grade completa?</div>
+            <div class="bubble operator">Sim, consigo montar com P, M, G e GG.</div>
+          </div>
+          <form class="chat-input" id="chatForm">
+            <input id="chatMessage" type="text" placeholder="Mensagem">
+            <button class="icon-button" type="submit" title="Enviar" aria-label="Enviar">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+            </button>
+          </form>
+        </section>
+      </aside>
+
+      <section class="catalog" aria-label="Catalogo">
+        <div class="catalog-head">
+          <div>
+            <h2>Catálogo importado</h2>
+            <p>Selecione as peças enquanto o cliente acompanha o pedido.</p>
+          </div>
+          <div class="catalog-side">
+            <button class="secondary-action" id="catalogAdminBtn" type="button">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              Cadastrar peça
+            </button>
+            <div class="catalog-stats">
+              <div class="metric"><span>Modelos</span><strong id="metricModels">0</strong></div>
+              <div class="metric"><span>Estoque</span><strong id="metricStock">0</strong></div>
+              <div class="metric"><span>Selecionados</span><strong id="metricSelected">0</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filterbar">
+          <label class="search">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+            <input id="searchInput" type="search" placeholder="Buscar por produto, tecido ou código">
+          </label>
+          <select id="categoryFilter" aria-label="Categoria">
+            <option value="todos">Todas as categorias</option>
+            <option value="Blazers">Blazers</option>
+            <option value="Camisas">Camisas</option>
+            <option value="Vestidos">Vestidos</option>
+            <option value="Calcas">Calcas</option>
+            <option value="Casacos">Casacos</option>
+          </select>
+          <select id="originFilter" aria-label="Origem">
+            <option value="todos">Todas as origens</option>
+            <option value="Italia">Italia</option>
+            <option value="Portugal">Portugal</option>
+            <option value="Turquia">Turquia</option>
+            <option value="India">India</option>
+          </select>
+          <select id="sortSelect" aria-label="Ordenar">
+            <option value="name">Nome</option>
+            <option value="price-asc">Menor preço</option>
+            <option value="price-desc">Maior preço</option>
+            <option value="stock">Estoque</option>
+          </select>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid" aria-live="polite"></div>
+      </section>
+
+      <aside class="panel order-panel" aria-label="Pedido">
+        <div class="panel-title">
+          <h2>Pedido em tempo real</h2>
+          <span class="tag" id="orderSyncTag">Sincronizado</span>
+          <span class="tag cloud-tag" id="orderCloudTag">Nuvem pronta</span>
+        </div>
+
+        <section class="summary-card" aria-label="Resumo do pedido">
+          <div class="summary-total">
+            <span>Valor total</span>
+            <strong id="totalValue">R$ 0,00</strong>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-item"><span>Peças</span><strong id="totalPieces">0</strong></div>
+            <div class="summary-item"><span>Modelos</span><strong id="totalModels">0</strong></div>
+            <div class="summary-item"><span>Cores</span><strong id="totalColors">0</strong></div>
+          </div>
+        </section>
+
+        <div class="order-tools">
+          <button class="secondary-action" id="clearOrderBtn" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg>
+            Limpar
+          </button>
+          <button class="secondary-action" id="proposalBtn" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+            Proposta
+          </button>
+        </div>
+
+        <section class="order-card" aria-label="Itens do pedido">
+          <div class="order-head">
+            <h2>Itens escolhidos</h2>
+            <strong id="orderCount">0</strong>
+          </div>
+          <div class="order-list" id="orderList"></div>
+        </section>
+
+        <section class="grade-card" aria-label="Grade do pedido">
+          <h2>Grade consolidada</h2>
+          <table class="grade-table">
+            <thead>
+              <tr><th>Tamanho</th><th>Peças</th><th>Valor</th></tr>
+            </thead>
+            <tbody id="gradeSummary"></tbody>
+          </table>
+        </section>
+
+        <div class="footer-actions">
+          <button class="primary-action" id="confirmOrderBtn" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
+            Confirmar pedido
+          </button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="client-app is-locked" id="clientApp">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M4 7l8-4 8 4-8 4-8-4z"></path>
+            <path d="M4 12l8 4 8-4"></path>
+            <path d="M4 17l8 4 8-4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Portal do Lojista</h1>
+          <p>Compra acompanhada em tempo real com o operador</p>
+        </div>
+      </div>
+
+      <div class="session-meta">
+        <span class="status-dot"></span>
+        <span id="clientSessionStatus">Conectado a live</span>
+        <strong id="clientRoomCodeLabel">LIVE-4821</strong>
+      </div>
+
+      <div class="top-actions">
+        <button class="secondary-action" id="viewAdminBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 5h18"></path><path d="M3 12h18"></path><path d="M3 19h18"></path></svg>
+          Tela operador
+        </button>
+        <div class="account-chip" id="clientAccountChip" aria-label="Conta logada">
+          <span class="account-avatar" id="clientAccountAvatar">LJ</span>
+          <span id="clientAccountName">Lojista</span>
+        </div>
+        <button class="icon-button" id="clientLogoutBtn" type="button" title="Sair" aria-label="Sair">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="client-layout">
+      <section class="client-live" aria-label="Live do lojista">
+        <div class="panel-title">
+          <h2>Apresentação ao vivo</h2>
+          <span class="tag"><span class="status-dot"></span> Lojista conectado</span>
+        </div>
+
+        <section class="client-video-stage" id="clientVideoStage" aria-label="Câmera do operador">
+          <div class="jitsi-stage" id="clientJitsiStage" hidden></div>
+          <video class="client-operator-video" id="clientOperatorVideo" autoplay playsinline controls></video>
+          <div class="client-video-caption">
+            <strong id="clientShowcaseName">Blazer Milano Alfaiataria</strong>
+            <span id="clientShowcaseMeta">Azul marinho | Crepe premium</span>
+          </div>
+          <div class="client-operator-badge">OP</div>
+          <div class="client-camera-placeholder" id="clientCâmeraPlaceholder">
+            <div>
+              <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+              <strong>Aguardando câmera do operador</strong>
+            </div>
+          </div>
+          <div class="client-showcase-piece" id="clientShowcasePiece"></div>
+          <div class="client-live-footer">
+            <div>
+              <strong id="clientBuyerName">Lojista</strong>
+              <span>acompanhando pedido e catálogo</span>
+            </div>
+            <button class="primary-action" id="clientProposalBtn" type="button">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+              Ver proposta
+            </button>
+          </div>
+        </section>
+
+        <section aria-label="Catalogo do lojista">
+          <div class="panel-title">
+            <h2>Catálogo em exibição</h2>
+            <span class="tag" id="clientCatalogCount">0 modelos</span>
+          </div>
+          <div class="client-catalog-strip" id="clientCatalogStrip"></div>
+        </section>
+      </section>
+
+      <aside class="client-side" aria-label="Pedido do lojista">
+        <div class="panel-title">
+          <h2>Meu pedido</h2>
+          <span class="tag" id="clientOrderSyncTag">Sincronizado</span>
+          <span class="tag cloud-tag" id="clientCloudTag">Nuvem pronta</span>
+        </div>
+
+        <section class="journey-card" aria-label="Etapas do atendimento">
+          <div class="panel-title"><h2>Jornada da compra</h2><span class="tag">Ao vivo</span></div>
+          <div class="journey-steps">
+            <div class="journey-step"><strong>1. Live</strong><span>Assista à apresentação do operador.</span></div>
+            <div class="journey-step"><strong>2. Catálogo</strong><span>Veja as peças em destaque.</span></div>
+            <div class="journey-step"><strong>3. Pedido</strong><span>Acompanhe grade, cores e valores.</span></div>
+            <div class="journey-step"><strong>4. Proposta</strong><span>Finalize com o resumo comercial.</span></div>
+          </div>
+        </section>
+
+        <section class="summary-card" aria-label="Resumo do pedido do lojista">
+          <div class="summary-total">
+            <span>Valor total</span>
+            <strong id="clientTotalValue">R$ 0,00</strong>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-item"><span>Peças</span><strong id="clientTotalPieces">0</strong></div>
+            <div class="summary-item"><span>Modelos</span><strong id="clientTotalModels">0</strong></div>
+            <div class="summary-item"><span>Cores</span><strong id="clientTotalColors">0</strong></div>
+          </div>
+        </section>
+
+        <section class="order-card" aria-label="Itens escolhidos pelo lojista">
+          <div class="order-head">
+            <h2>Itens adicionados pelo operador</h2>
+            <strong id="clientOrderCount">0</strong>
+          </div>
+          <div class="order-list" id="clientOrderList"></div>
+        </section>
+
+        <section class="grade-card" aria-label="Grade do pedido do lojista">
+          <h2>Grade escolhida</h2>
+          <table class="grade-table">
+            <thead>
+              <tr><th>Tamanho</th><th>Peças</th><th>Valor</th></tr>
+            </thead>
+            <tbody id="clientGradeSummary"></tbody>
+          </table>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="proposalModal" role="dialog" aria-modal="true" aria-labelledby="proposalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="proposalTitle">Proposta do pedido</h2>
+        </div>
+        <button class="icon-button" id="closeProposalBtn" type="button" title="Fechar" aria-label="Fechar">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="proposalBody"></div>
+      <div class="modal-actions">
+        <button class="secondary-action" id="copyProposalBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>
+          Copiar
+        </button>
+        <button class="primary-action" id="closeProposalBottomBtn" type="button">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="inviteModal" role="dialog" aria-modal="true" aria-labelledby="inviteTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="inviteTitle">Convidar cliente</h2>
+        </div>
+        <button class="icon-button" id="closeInviteBtn" type="button" title="Fechar" aria-label="Fechar">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="invite-grid">
+          <div class="invite-box"><span>Código</span><strong id="inviteCode">LIVE-4821</strong></div>
+          <div class="invite-box"><span>Acesso</span><strong id="invitePassword">Firebase Auth</strong></div>
+          <div class="invite-box"><span>Status</span><strong id="inviteStatus">Aberta</strong></div>
+        </div>
+        <label class="form-field">
+          <span>Link da reunião</span>
+          <input id="inviteLink" type="text" readonly>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-action" id="copyInviteBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>
+          Copiar convite
+        </button>
+        <button class="primary-action" id="closeInviteBottomBtn" type="button">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <div>
+          <h2 id="productModalTitle">Cadastro de peças</h2>
+        </div>
+        <button class="icon-button" id="closeProductModalBtn" type="button" title="Fechar" aria-label="Fechar">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="product-admin-layout">
+          <form class="login-form" id="productForm">
+            <div class="product-form-grid">
+              <label class="form-field">
+                <span>Código</span>
+                <input id="newProductId" type="text" required placeholder="IMP-001">
+              </label>
+              <label class="form-field">
+                <span>Nome da peça</span>
+                <input id="newProductName" type="text" required placeholder="Blazer Paris">
+              </label>
+              <label class="form-field">
+                <span>Categoria</span>
+                <select id="newProductCategory">
+                  <option>Blazers</option>
+                  <option>Camisas</option>
+                  <option>Vestidos</option>
+                  <option>Calcas</option>
+                  <option>Casacos</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Origem</span>
+                <input id="newProductOrigin" type="text" required placeholder="Italia">
+              </label>
+              <label class="form-field">
+                <span>Tecido</span>
+                <input id="newProductFabric" type="text" required placeholder="Crepe premium">
+              </label>
+              <label class="form-field">
+                <span>Tipo visual</span>
+                <select id="newProductType">
+                  <option value="blazer">Blazer</option>
+                  <option value="shirt">Camisa</option>
+                  <option value="dress">Vestido</option>
+                  <option value="pants">Calca</option>
+                  <option value="coat">Casaco</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Valor unitário</span>
+                <input id="newProductPrice" type="text" inputmode="decimal" required placeholder="289,90">
+              </label>
+              <label class="form-field">
+                <span>Estoque</span>
+                <input id="newProductStock" type="number" min="1" required value="24">
+              </label>
+              <label class="form-field full">
+                <span>Grade</span>
+                <input id="newProductSizes" type="text" required placeholder="P, M, G, GG">
+              </label>
+              <label class="form-field full">
+                <span>Cores</span>
+                <textarea id="newProductColors" required placeholder="Azul marinho:#172c4f, Off white:#f4f1e9"></textarea>
+              </label>
+            </div>
+            <button class="primary-action" type="submit">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
+              Salvar peça
+            </button>
+          </form>
+
+          <section aria-label="Peças cadastradas">
+            <div class="panel-title">
+              <h2>Peças cadastradas</h2>
+              <button class="icon-button" id="seedProductsBtn" type="button" title="Criar itens na base Firebase" aria-label="Criar itens na base Firebase">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+              </button>
+              <button class="icon-button" id="resetProductsBtn" type="button" title="Restaurar exemplos" aria-label="Restaurar exemplos">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path></svg>
+              </button>
+            </div>
+            <div class="product-admin-list" id="productAdminList"></div>
+          </section>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="primary-action" id="closeProductBottomBtn" type="button">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal" id="approvalsModal" role="dialog" aria-modal="true" aria-labelledby="approvalsTitle">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <div>
+          <h2 id="approvalsTitle">Aprovação de usuários</h2>
+          <p class="login-note" style="margin-top:8px">Aprove ou recuse cadastros pendentes sem precisar editar o Realtime Database manualmente.</p>
+        </div>
+        <button class="icon-button" id="closeApprovalsBtn" type="button" title="Fechar" aria-label="Fechar">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="approval-list" id="approvalsList">
+          <div class="empty-order"><div><strong>Carregando solicitações</strong><span>Conecte o Firebase para visualizar os cadastros.</span></div></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-action" id="refreshApprovalsBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path></svg>
+          Atualizar
+        </button>
+        <button class="primary-action" id="closeApprovalsBottomBtn" type="button">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultProducts = [
+      {
+        id: "IT-BLZ-481",
+        name: "Blazer Milano Alfaiataria",
+        category: "Blazers",
+        origin: "Italia",
+        fabric: "Crepe premium",
+        price: 289.9,
+        stock: 84,
+        sizes: ["P", "M", "G", "GG"],
+        colors: [
+          { name: "Azul marinho", hex: "#172c4f" },
+          { name: "Off white", hex: "#f4f1e9" },
+          { name: "Verde oliva", hex: "#556b4b" }
+        ],
+        type: "blazer",
+        visual: "#e9f0ec"
+      },
+      {
+        id: "PT-CAM-218",
+        name: "Camisa Porto Linho",
+        category: "Camisas",
+        origin: "Portugal",
+        fabric: "Linho com viscose",
+        price: 119.5,
+        stock: 142,
+        sizes: ["P", "M", "G", "GG", "XG"],
+        colors: [
+          { name: "Branco", hex: "#ffffff" },
+          { name: "Celeste", hex: "#a9cadc" },
+          { name: "Areia", hex: "#d8c7a7" }
+        ],
+        type: "shirt",
+        visual: "#eef4f6"
+      },
+      {
+        id: "TR-VES-734",
+        name: "Vestido Izmir Midi",
+        category: "Vestidos",
+        origin: "Turquia",
+        fabric: "Viscose acetinada",
+        price: 198.0,
+        stock: 67,
+        sizes: ["PP", "P", "M", "G"],
+        colors: [
+          { name: "Terracota", hex: "#b56246" },
+          { name: "Preto", hex: "#222222" },
+          { name: "Rosa antigo", hex: "#c58a8f" }
+        ],
+        type: "dress",
+        visual: "#f4eeee"
+      },
+      {
+        id: "IN-CAL-092",
+        name: "Calca Jaipur Wide",
+        category: "Calcas",
+        origin: "India",
+        fabric: "Algodao maquinetado",
+        price: 154.9,
+        stock: 96,
+        sizes: ["36", "38", "40", "42", "44"],
+        colors: [
+          { name: "Caramelo", hex: "#a86c3d" },
+          { name: "Grafite", hex: "#3e4246" },
+          { name: "Natural", hex: "#e6dcc9" }
+        ],
+        type: "pants",
+        visual: "#f1eee8"
+      },
+      {
+        id: "IT-CAS-612",
+        name: "Casaco Torino Tricot",
+        category: "Casacos",
+        origin: "Italia",
+        fabric: "Tricot misto la",
+        price: 236.4,
+        stock: 48,
+        sizes: ["P", "M", "G"],
+        colors: [
+          { name: "Bordo", hex: "#692b35" },
+          { name: "Cinza mescla", hex: "#9c9c98" },
+          { name: "Marfim", hex: "#eee8d8" }
+        ],
+        type: "coat",
+        visual: "#f0edf1"
+      },
+      {
+        id: "TR-CAM-355",
+        name: "Camisa Ankara Oversized",
+        category: "Camisas",
+        origin: "Turquia",
+        fabric: "Algodao fio tinto",
+        price: 132.8,
+        stock: 118,
+        sizes: ["P", "M", "G", "GG"],
+        colors: [
+          { name: "Listrado azul", hex: "#6d94b8" },
+          { name: "Verde menta", hex: "#9fc8aa" },
+          { name: "Preto", hex: "#202020" }
+        ],
+        type: "shirt",
+        visual: "#eef2ed"
+      },
+      {
+        id: "PT-VES-901",
+        name: "Vestido Lisboa Chemise",
+        category: "Vestidos",
+        origin: "Portugal",
+        fabric: "Cambraia texturizada",
+        price: 214.7,
+        stock: 52,
+        sizes: ["P", "M", "G", "GG"],
+        colors: [
+          { name: "Verde folha", hex: "#3f7b56" },
+          { name: "Azul claro", hex: "#b7d4e2" },
+          { name: "Chocolate", hex: "#6e4633" }
+        ],
+        type: "dress",
+        visual: "#edf5f0"
+      },
+      {
+        id: "IN-BLZ-177",
+        name: "Blazer Delhi Curto",
+        category: "Blazers",
+        origin: "India",
+        fabric: "Sarja com elastano",
+        price: 229.0,
+        stock: 73,
+        sizes: ["P", "M", "G"],
+        colors: [
+          { name: "Mostarda", hex: "#c3922e" },
+          { name: "Cru", hex: "#eee2ce" },
+          { name: "Marinho", hex: "#1e2e54" }
+        ],
+        type: "blazer",
+        visual: "#f3f0e7"
+      }
+    ];
+
+    let products = loadProducts();
+
+    const state = {
+      order: [],
+      callStartedAt: null,
+      timerId: null,
+      cameraStream: null,
+      screenStream: null,
+      peerConnection: null,
+      remoteStream: null,
+      rtcAnswerUnsubscribe: null,
+      rtcCandidateUnsubscribe: null,
+      rtcCallUnsubscribe: null,
+      rtcCallerCandidateUnsubscribe: null,
+      joiningCall: false,
+      jitsiOperatorApi: null,
+      jitsiClientApi: null,
+      jitsiCallUnsubscribe: null,
+      jitsiRoomName: null,
+      role: null,
+      userName: "Lojista",
+      roomCode: "LIVE-4821",
+      firebaseUser: null,
+      featuredProductId: products[0]?.id || null
+    };
+
+    let orderSaveTimer = null;
+    let isApplyingRemoteOrder = false;
+
+    const els = {
+      app: document.querySelector("#app"),
+      clientApp: document.querySelector("#clientApp"),
+      loginScreen: document.querySelector("#loginScreen"),
+      firebaseStatus: document.querySelector("#firebaseStatus"),
+      loginTabs: document.querySelectorAll("[data-login-role]"),
+      operatorLogin: document.querySelector("#operatorLogin"),
+      clientLogin: document.querySelector("#clientLogin"),
+      registerForm: document.querySelector("#registerForm"),
+      operatorUser: document.querySelector("#operatorUser"),
+      operatorPassword: document.querySelector("#operatorPassword"),
+      operatorGoogleBtn: document.querySelector("#operatorGoogleBtn"),
+      clientGoogleBtn: document.querySelector("#clientGoogleBtn"),
+      registerGoogleBtn: document.querySelector("#registerGoogleBtn"),
+      clientLoginName: document.querySelector("#clientLoginName"),
+      clientRoomCode: document.querySelector("#clientRoomCode"),
+      clientRoomPassword: document.querySelector("#clientRoomPassword"),
+      registerName: document.querySelector("#registerName"),
+      registerCompany: document.querySelector("#registerCompany"),
+      registerCnpj: document.querySelector("#registerCnpj"),
+      registerPhone: document.querySelector("#registerPhone"),
+      registerRole: document.querySelector("#registerRole"),
+      registerEmail: document.querySelector("#registerEmail"),
+      registerPassword: document.querySelector("#registerPassword"),
+      registerPasswordConfirm: document.querySelector("#registerPasswordConfirm"),
+      catalogGrid: document.querySelector("#catalogGrid"),
+      searchInput: document.querySelector("#searchInput"),
+      categoryFilter: document.querySelector("#categoryFilter"),
+      originFilter: document.querySelector("#originFilter"),
+      sortSelect: document.querySelector("#sortSelect"),
+      metricModels: document.querySelector("#metricModels"),
+      metricStock: document.querySelector("#metricStock"),
+      metricSelected: document.querySelector("#metricSelected"),
+      orderList: document.querySelector("#orderList"),
+      orderCount: document.querySelector("#orderCount"),
+      totalValue: document.querySelector("#totalValue"),
+      totalPieces: document.querySelector("#totalPieces"),
+      totalModels: document.querySelector("#totalModels"),
+      totalColors: document.querySelector("#totalColors"),
+      gradeSummary: document.querySelector("#gradeSummary"),
+      toast: document.querySelector("#toast"),
+      clearOrderBtn: document.querySelector("#clearOrderBtn"),
+      proposalBtn: document.querySelector("#proposalBtn"),
+      proposalModal: document.querySelector("#proposalModal"),
+      proposalBody: document.querySelector("#proposalBody"),
+      closeProposalBtn: document.querySelector("#closeProposalBtn"),
+      closeProposalBottomBtn: document.querySelector("#closeProposalBottomBtn"),
+      copyProposalBtn: document.querySelector("#copyProposalBtn"),
+      confirmOrderBtn: document.querySelector("#confirmOrderBtn"),
+      shareOrderBtn: document.querySelector("#shareOrderBtn"),
+      accountChip: document.querySelector("#accountChip"),
+      accountAvatar: document.querySelector("#accountAvatar"),
+      accountName: document.querySelector("#accountName"),
+      viewClientBtn: document.querySelector("#viewClientBtn"),
+      viewAdminBtn: document.querySelector("#viewAdminBtn"),
+      clientAccountChip: document.querySelector("#clientAccountChip"),
+      clientAccountAvatar: document.querySelector("#clientAccountAvatar"),
+      clientAccountName: document.querySelector("#clientAccountName"),
+      inviteBtn: document.querySelector("#inviteBtn"),
+      productAdminBtn: document.querySelector("#productAdminBtn"),
+      catalogAdminBtn: document.querySelector("#catalogAdminBtn"),
+      logoutBtn: document.querySelector("#logoutBtn"),
+      clientLogoutBtn: document.querySelector("#clientLogoutBtn"),
+      startCallBtn: document.querySelector("#startCallBtn"),
+      endCallBtn: document.querySelector("#endCallBtn"),
+      sessionStatus: document.querySelector("#sessionStatus"),
+      sessionTime: document.querySelector("#sessionTime"),
+      roomCodeLabel: document.querySelector("#roomCodeLabel"),
+      micBtn: document.querySelector("#micBtn"),
+      cameraBtn: document.querySelector("#cameraBtn"),
+      screenBtn: document.querySelector("#screenBtn"),
+      localVideo: document.querySelector("#localVideo"),
+      operatorPreview: document.querySelector("#operatorPreview"),
+      showcasePiece: document.querySelector("#showcasePiece"),
+      showcaseName: document.querySelector("#showcaseName"),
+      showcaseMeta: document.querySelector("#showcaseMeta"),
+      customerAvatar: document.querySelector("#customerAvatar"),
+      customerNameDisplay: document.querySelector("#customerNameDisplay"),
+      clientNameSummary: document.querySelector("#clientNameSummary"),
+      chatForm: document.querySelector("#chatForm"),
+      chatMessage: document.querySelector("#chatMessage"),
+      chatFeed: document.querySelector("#chatFeed"),
+      orderSyncTag: document.querySelector("#orderSyncTag"),
+      clientSessionStatus: document.querySelector("#clientSessionStatus"),
+      clientRoomCodeLabel: document.querySelector("#clientRoomCodeLabel"),
+      clientVideoStage: document.querySelector("#clientVideoStage"),
+      clientOperatorVideo: document.querySelector("#clientOperatorVideo"),
+      clientCâmeraPlaceholder: document.querySelector("#clientCâmeraPlaceholder"),
+      clientShowcasePiece: document.querySelector("#clientShowcasePiece"),
+      clientShowcaseName: document.querySelector("#clientShowcaseName"),
+      clientShowcaseMeta: document.querySelector("#clientShowcaseMeta"),
+      clientBuyerName: document.querySelector("#clientBuyerName"),
+      clientCatalogStrip: document.querySelector("#clientCatalogStrip"),
+      clientCatalogCount: document.querySelector("#clientCatalogCount"),
+      clientOrderSyncTag: document.querySelector("#clientOrderSyncTag"),
+      clientTotalValue: document.querySelector("#clientTotalValue"),
+      clientTotalPieces: document.querySelector("#clientTotalPieces"),
+      clientTotalModels: document.querySelector("#clientTotalModels"),
+      clientTotalColors: document.querySelector("#clientTotalColors"),
+      clientOrderCount: document.querySelector("#clientOrderCount"),
+      clientOrderList: document.querySelector("#clientOrderList"),
+      clientGradeSummary: document.querySelector("#clientGradeSummary"),
+      clientProposalBtn: document.querySelector("#clientProposalBtn"),
+      inviteModal: document.querySelector("#inviteModal"),
+      inviteCode: document.querySelector("#inviteCode"),
+      invitePassword: document.querySelector("#invitePassword"),
+      inviteLink: document.querySelector("#inviteLink"),
+      closeInviteBtn: document.querySelector("#closeInviteBtn"),
+      closeInviteBottomBtn: document.querySelector("#closeInviteBottomBtn"),
+      copyInviteBtn: document.querySelector("#copyInviteBtn"),
+      productModal: document.querySelector("#productModal"),
+      closeProductModalBtn: document.querySelector("#closeProductModalBtn"),
+      closeProductBottomBtn: document.querySelector("#closeProductBottomBtn"),
+      productForm: document.querySelector("#productForm"),
+      productAdminList: document.querySelector("#productAdminList"),
+      resetProductsBtn: document.querySelector("#resetProductsBtn"),
+      seedProductsBtn: document.querySelector("#seedProductsBtn"),
+      newProductId: document.querySelector("#newProductId"),
+      newProductName: document.querySelector("#newProductName"),
+      newProductCategory: document.querySelector("#newProductCategory"),
+      newProductOrigin: document.querySelector("#newProductOrigin"),
+      newProductFabric: document.querySelector("#newProductFabric"),
+      newProductType: document.querySelector("#newProductType"),
+      newProductPrice: document.querySelector("#newProductPrice"),
+      newProductStock: document.querySelector("#newProductStock"),
+      newProductSizes: document.querySelector("#newProductSizes"),
+      newProductColors: document.querySelector("#newProductColors")
+    };
+
+    const money = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+    function setFirebaseStatus(message, type = "info") {
+      if (!els.firebaseStatus) return;
+      els.firebaseStatus.textContent = message;
+      els.firebaseStatus.className = `firebase-status ${type}`.trim();
+    }
+
+    window.setFirebaseStatus = setFirebaseStatus;
+
+    function loadProducts() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("textil-products") || "null");
+        if (Array.isArray(saved) && saved.length) return saved;
+      } catch (error) {
+        localStorage.removeItem("textil-products");
+      }
+      return defaultProducts.map(product => ({ ...product, colors: [...product.colors], sizes: [...product.sizes] }));
+    }
+
+    function saveProducts(options = {}) {
+      localStorage.setItem("textil-products", JSON.stringify(products));
+      if (options.skipFirebase) return;
+      if (typeof window.portalSaveProductsToFirebase === "function") {
+        window.portalSaveProductsToFirebase(products);
+      }
+    }
+
+    function cloneProductsForDatabase(sourceProducts = products) {
+      return sourceProducts.map(product => ({
+        id: String(product.id || crypto.randomUUID()),
+        name: String(product.name || "Peca sem nome"),
+        category: String(product.category || "Outros"),
+        origin: String(product.origin || "Nao informado"),
+        fabric: String(product.fabric || "Nao informado"),
+        price: Number(product.price) || 0,
+        stock: Number(product.stock) || 0,
+        sizes: Array.isArray(product.sizes) ? product.sizes.map(size => String(size)) : [],
+        colors: Array.isArray(product.colors)
+          ? product.colors.map(color => ({
+              name: String(color.name || "Cor"),
+              hex: String(color.hex || "#cccccc")
+            }))
+          : [],
+        type: String(product.type || "shirt"),
+        visual: String(product.visual || "#eef3f0")
+      }));
+    }
+
+    async function createItemsInFirebase() {
+      if (typeof window.portalSeedDatabase !== "function") {
+        showToast("Firebase ainda nao carregou");
+        return;
+      }
+
+      try {
+        await window.portalSeedDatabase(products);
+        showToast("Itens criados na base Firebase");
+      } catch (error) {
+        console.warn("Firebase seed failed", error);
+        showToast("Sem permissao para criar itens");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function parsePrice(value) {
+      const normalized = String(value)
+        .trim()
+        .replace(/\s/g, "")
+        .replace(/\.(?=\d{3}(,|$))/g, "")
+        .replace(",", ".");
+      return Number(normalized);
+    }
+
+    function parseList(value) {
+      return String(value)
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    function parseColors(value) {
+      const fallback = ["#173c36", "#0d5c88", "#a96a08", "#692b35", "#3e4246"];
+      return parseList(value).map((item, index) => {
+        const [rawName, rawHex] = item.split(":");
+        const name = (rawName || `Cor ${index + 1}`).trim();
+        const hex = (rawHex || fallback[index % fallback.length]).trim();
+        return {
+          name,
+          hex: /^#[0-9a-f]{6}$/i.test(hex) ? hex : fallback[index % fallback.length]
+        };
+      });
+    }
+
+    function roomLink() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("pagina", "lojista");
+      url.searchParams.set("perfil", "cliente");
+      url.searchParams.set("sala", state.roomCode);
+      return url.toString();
+    }
+
+    function setPageUrl(page, replace = false) {
+      const url = new URL(window.location.href);
+      if (page === "login") {
+        url.searchParams.delete("pagina");
+        url.searchParams.delete("perfil");
+      } else {
+        url.searchParams.set("pagina", page);
+      }
+      const method = replace ? "replaceState" : "pushState";
+      window.history[method]({ page }, "", url);
+    }
+
+    function saveSession() {
+      localStorage.setItem("textil-session", JSON.stringify({
+        email: state.firebaseUser?.email || null
+      }));
+    }
+
+    function clearSession() {
+      localStorage.removeItem("textil-session");
+    }
+
+    function readSession() {
+      try {
+        return JSON.parse(localStorage.getItem("textil-session") || "null");
+      } catch (error) {
+        clearSession();
+        return null;
+      }
+    }
+
+    function iconGarment(type, color) {
+      const fill = color || "#35695e";
+      if (type === "shirt") {
+        return `
+          <svg viewBox="0 0 120 140" aria-hidden="true">
+            <path fill="${fill}" d="M40 18l20 12 20-12 28 20-16 25-12-8v67H40V55l-12 8-16-25 28-20z"/>
+            <path fill="rgba(255,255,255,.34)" d="M51 26l9 7 9-7-4 22H55l-4-22z"/>
+            <path stroke="rgba(255,255,255,.45)" stroke-width="3" d="M60 35v78"/>
+          </svg>`;
+      }
+      if (type === "dress") {
+        return `
+          <svg viewBox="0 0 120 140" aria-hidden="true">
+            <path fill="${fill}" d="M43 18h34l9 28-13 7 25 69H22l25-69-13-7 9-28z"/>
+            <path fill="rgba(255,255,255,.3)" d="M50 18h20l-10 22-10-22z"/>
+            <path stroke="rgba(255,255,255,.42)" stroke-width="3" d="M42 71h36"/>
+          </svg>`;
+      }
+      if (type === "pants") {
+        return `
+          <svg viewBox="0 0 120 140" aria-hidden="true">
+            <path fill="${fill}" d="M37 18h46l8 104H65L60 57l-5 65H29L37 18z"/>
+            <path fill="rgba(255,255,255,.34)" d="M39 18h42v17H39z"/>
+            <path stroke="rgba(255,255,255,.42)" stroke-width="3" d="M60 35v87"/>
+          </svg>`;
+      }
+      if (type === "coat") {
+        return `
+          <svg viewBox="0 0 120 140" aria-hidden="true">
+            <path fill="${fill}" d="M38 16l22 13 22-13 20 21-14 17v71H32V54L18 37l20-21z"/>
+            <path fill="rgba(255,255,255,.28)" d="M54 30h12l8 84H46l8-84z"/>
+            <path stroke="rgba(255,255,255,.48)" stroke-width="3" d="M60 31v86"/>
+          </svg>`;
+      }
+      return `
+        <svg viewBox="0 0 120 140" aria-hidden="true">
+          <path fill="${fill}" d="M35 18l25 11 25-11 24 25-17 20-9-8v69H37V55l-9 8-17-20 24-25z"/>
+          <path fill="rgba(255,255,255,.28)" d="M49 24l11 10 11-10 3 16-14 10-14-10 3-16z"/>
+          <path stroke="rgba(255,255,255,.46)" stroke-width="3" d="M60 50v68"/>
+        </svg>`;
+    }
+
+    function showcaseProduct(product) {
+      if (!product) return;
+      state.featuredProductId = product.id;
+      const mainColor = product.colors[0]?.hex || "#35695e";
+      els.showcasePiece.innerHTML = `<div class="garment">${iconGarment(product.type, mainColor)}</div>`;
+      els.showcaseName.textContent = product.name;
+      els.showcaseMeta.textContent = `${product.colors[0]?.name || "Cor"} | ${product.fabric}`;
+      els.clientShowcasePiece.innerHTML = `<div class="garment">${iconGarment(product.type, mainColor)}</div>`;
+      els.clientShowcaseName.textContent = product.name;
+      els.clientShowcaseMeta.textContent = `${product.colors[0]?.name || "Cor"} | ${product.fabric}`;
+      renderClientCatalog();
+    }
+
+    function getFilteredProducts() {
+      const term = els.searchInput.value.trim().toLowerCase();
+      const category = els.categoryFilter.value;
+      const origin = els.originFilter.value;
+      const sort = els.sortSelect.value;
+
+      return products
+        .filter(product => {
+          const haystack = `${product.name} ${product.id} ${product.fabric} ${product.category} ${product.origin}`.toLowerCase();
+          const matchesTerm = !term || haystack.includes(term);
+          const matchesCategory = category === "todos" || product.category === category;
+          const matchesOrigin = origin === "todos" || product.origin === origin;
+          return matchesTerm && matchesCategory && matchesOrigin;
+        })
+        .sort((a, b) => {
+          if (sort === "price-asc") return a.price - b.price;
+          if (sort === "price-desc") return b.price - a.price;
+          if (sort === "stock") return b.stock - a.stock;
+          return a.name.localeCompare(b.name, "pt-BR");
+        });
+    }
+
+    function renderCatalog() {
+      const list = getFilteredProducts();
+      els.metricModels.textContent = String(list.length);
+      els.metricStock.textContent = String(list.reduce((sum, item) => sum + item.stock, 0));
+      els.metricSelected.textContent = String(state.order.reduce((sum, item) => sum + item.qty, 0));
+
+      els.catalogGrid.innerHTML = list.map(product => {
+        const colorOptions = product.colors.map(color => `<option value="${escapeHtml(color.name)}">${escapeHtml(color.name)}</option>`).join("");
+        const sizeOptions = product.sizes.map(size => `<option value="${escapeHtml(size)}">${escapeHtml(size)}</option>`).join("");
+        const swatches = product.colors.map(color => `<span class="swatch" style="background:${escapeHtml(color.hex)}" title="${escapeHtml(color.name)}"></span>`).join("");
+        const grade = product.sizes.map(size => `<span>${escapeHtml(size)}</span>`).join("");
+        const mainColor = product.colors[0]?.hex || "#35695e";
+
+        return `
+          <article class="product-card" data-product-id="${product.id}">
+            <div class="product-visual" style="--visual-bg:${product.visual}">
+              <span class="stock-badge">${product.stock} disp.</span>
+              <div class="garment">${iconGarment(product.type, mainColor)}</div>
+            </div>
+            <div class="product-body">
+              <div class="product-main">
+                <div>
+                  <h3>${escapeHtml(product.name)}</h3>
+                  <p>${escapeHtml(product.id)} | ${escapeHtml(product.origin)} | ${escapeHtml(product.fabric)}</p>
+                </div>
+                <div class="price">${money.format(product.price)}</div>
+              </div>
+              <div class="swatches" aria-label="Cores">${swatches}</div>
+              <div class="grade" aria-label="Grade">${grade}</div>
+              <div class="product-controls">
+                <select class="color-select" aria-label="Cor">${colorOptions}</select>
+                <select class="size-select" aria-label="Tamanho">${sizeOptions}</select>
+                <input class="qty-input" type="number" min="1" max="${product.stock}" value="1" aria-label="Quantidade">
+                <button class="product-add" type="button" data-add-product="${product.id}">
+                  <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      if (!list.length) {
+        els.catalogGrid.innerHTML = `
+          <div class="empty-order">
+            <div>
+              <strong>Nenhum produto encontrado</strong>
+              <span>Ajuste a busca ou os filtros.</span>
+            </div>
+          </div>
+        `;
+      }
+      renderClientCatalog();
+    }
+
+    function renderClientCatalog() {
+      if (!els.clientCatalogStrip) return;
+      const list = products.slice(0, 12);
+      els.clientCatalogCount.textContent = `${products.length} modelos`;
+      if (!list.length) {
+        els.clientCatalogStrip.innerHTML = `
+          <div class="empty-order">
+            <div>
+              <strong>Catalogo vazio</strong>
+              <span>O operador ainda nao cadastrou pecas.</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      els.clientCatalogStrip.innerHTML = list.map(product => {
+        const mainColor = product.colors[0]?.hex || "#35695e";
+        const active = product.id === state.featuredProductId ? " active" : "";
+        return `
+          <article class="client-catalog-card${active}" data-client-product-id="${escapeHtml(product.id)}">
+            <div class="client-mini-visual" style="--visual-bg:${escapeHtml(product.visual)}">
+              <div class="garment">${iconGarment(product.type, mainColor)}</div>
+            </div>
+            <h3>${escapeHtml(product.name)}</h3>
+            <p>${escapeHtml(product.origin)} | ${money.format(product.price)}</p>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function lineKey(productId, color, size) {
+      return `${productId}__${color}__${size}`;
+    }
+
+    function addToOrder(productId, color, size, qty) {
+      const product = products.find(item => item.id === productId);
+      if (!product) return;
+      showcaseProduct(product);
+
+      const key = lineKey(productId, color, size);
+      const existing = state.order.find(item => item.key === key);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        state.order.push({
+          key,
+          productId,
+          name: product.name,
+          id: product.id,
+          price: product.price,
+          origin: product.origin,
+          fabric: product.fabric,
+          color,
+          size,
+          qty
+        });
+      }
+
+      syncOrder(`${product.name} adicionado`);
+    }
+
+    function syncOrder(message) {
+      renderOrder();
+      renderCatalog();
+      pulseSync();
+      showToast(message);
+      queueOrderSave("rascunho");
+    }
+
+    function orderTotals() {
+      const pieces = state.order.reduce((sum, item) => sum + item.qty, 0);
+      const value = state.order.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const models = new Set(state.order.map(item => item.productId)).size;
+      const colors = new Set(state.order.map(item => item.color)).size;
+      return { pieces, value, models, colors };
+    }
+
+
+    function updateOrderCloudStatus(message) {
+      const operatorTag = document.querySelector("#orderCloudTag");
+      const clientTag = document.querySelector("#clientCloudTag");
+      [operatorTag, clientTag].filter(Boolean).forEach(tag => {
+        tag.textContent = message;
+      });
+    }
+
+    function orderPayload(status = "rascunho") {
+      const totals = orderTotals();
+      return {
+        roomCode: state.roomCode,
+        status,
+        buyerName: state.userName,
+        userUid: state.firebaseUser?.uid || null,
+        userEmail: state.firebaseUser?.email || null,
+        featuredProductId: state.featuredProductId,
+        order: state.order.map(item => ({ ...item })),
+        totals: {
+          pieces: totals.pieces,
+          models: totals.models,
+          colors: totals.colors,
+          value: totals.value
+        },
+        proposal: proposalText(),
+        updatedAtClient: new Date().toISOString()
+      };
+    }
+
+    function queueOrderSave(status = "rascunho") {
+      if (isApplyingRemoteOrder) return;
+      window.clearTimeout(orderSaveTimer);
+      orderSaveTimer = window.setTimeout(() => saveOrderToFirebase(status, { silent: true }), 650);
+    }
+
+    async function saveOrderToFirebase(status = "rascunho", options = {}) {
+      if (typeof window.portalSaveOrder !== "function") {
+        updateOrderCloudStatus("Local");
+        if (!options.silent) showToast("Pedido salvo apenas neste navegador");
+        return false;
+      }
+      try {
+        updateOrderCloudStatus("Salvando...");
+        await window.portalSaveOrder(orderPayload(status));
+        updateOrderCloudStatus(status === "confirmado" ? "Confirmado" : "Salvo");
+        if (!options.silent) showToast(status === "confirmado" ? "Pedido confirmado e salvo" : "Pedido salvo no Firebase");
+        return true;
+      } catch (error) {
+        console.warn("Order save failed", error);
+        updateOrderCloudStatus("Erro na nuvem");
+        if (!options.silent) showToast("Não foi possível salvar no Firebase");
+        return false;
+      }
+    }
+
+    function applyRemoteOrder(payload = {}) {
+      if (!Array.isArray(payload.order)) return;
+      isApplyingRemoteOrder = true;
+      state.order = payload.order.map(item => ({ ...item }));
+      if (payload.featuredProductId) state.featuredProductId = payload.featuredProductId;
+      renderOrder();
+      renderCatalog();
+      updateOrderCloudStatus(payload.status === "confirmado" ? "Confirmado" : "Sincronizado");
+      isApplyingRemoteOrder = false;
+    }
+
+    function renderOrder() {
+      const totals = orderTotals();
+      els.totalValue.textContent = money.format(totals.value);
+      els.totalPieces.textContent = String(totals.pieces);
+      els.totalModels.textContent = String(totals.models);
+      els.totalColors.textContent = String(totals.colors);
+      els.orderCount.textContent = String(state.order.length);
+
+      if (!state.order.length) {
+        els.orderList.innerHTML = `
+          <div class="empty-order">
+            <div>
+              <strong>Pedido vazio</strong>
+              <span>Os itens escolhidos entram aqui durante a live.</span>
+            </div>
+          </div>
+        `;
+      } else {
+        els.orderList.innerHTML = state.order.map(item => `
+          <div class="order-line" data-key="${item.key}">
+            <div>
+              <h3>${escapeHtml(item.name)}</h3>
+              <p>${escapeHtml(item.id)} | ${money.format(item.price)} un.</p>
+              <div class="line-meta">
+                <span class="line-pill">${escapeHtml(item.color)}</span>
+                <span class="line-pill">Tam. ${escapeHtml(item.size)}</span>
+                <span class="line-pill">${money.format(item.price * item.qty)}</span>
+              </div>
+            </div>
+            <div class="line-actions">
+              <button class="qty-button" type="button" data-action="decrease" title="Diminuir" aria-label="Diminuir">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"></path></svg>
+              </button>
+              <span class="line-qty">${item.qty}</span>
+              <button class="qty-button" type="button" data-action="increase" title="Aumentar" aria-label="Aumentar">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              </button>
+              <button class="remove-button" type="button" data-action="remove" title="Remover" aria-label="Remover">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      renderGrade();
+      renderClientOrder();
+    }
+
+    function renderClientOrder() {
+      if (!els.clientOrderList) return;
+      const totals = orderTotals();
+      els.clientTotalValue.textContent = money.format(totals.value);
+      els.clientTotalPieces.textContent = String(totals.pieces);
+      els.clientTotalModels.textContent = String(totals.models);
+      els.clientTotalColors.textContent = String(totals.colors);
+      els.clientOrderCount.textContent = String(state.order.length);
+
+      if (!state.order.length) {
+        els.clientOrderList.innerHTML = `
+          <div class="empty-order">
+            <div>
+              <strong>Nenhuma peça escolhida</strong>
+              <span>O pedido aparece aqui conforme o operador adiciona os itens.</span>
+            </div>
+          </div>
+        `;
+      } else {
+        els.clientOrderList.innerHTML = state.order.map(item => `
+          <div class="order-line">
+            <div>
+              <h3>${escapeHtml(item.name)}</h3>
+              <p>${escapeHtml(item.id)} | ${money.format(item.price)} un.</p>
+              <div class="line-meta">
+                <span class="line-pill">${escapeHtml(item.color)}</span>
+                <span class="line-pill">Tam. ${escapeHtml(item.size)}</span>
+                <span class="line-pill">${item.qty} un.</span>
+                <span class="line-pill">${money.format(item.price * item.qty)}</span>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      renderClientGrade();
+    }
+
+    function renderGrade() {
+      const bySize = new Map();
+      state.order.forEach(item => {
+        const current = bySize.get(item.size) || { qty: 0, value: 0 };
+        current.qty += item.qty;
+        current.value += item.qty * item.price;
+        bySize.set(item.size, current);
+      });
+
+      if (!bySize.size) {
+        els.gradeSummary.innerHTML = `<tr><td colspan="3">Sem itens</td></tr>`;
+        return;
+      }
+
+      const sizeOrder = ["PP", "P", "M", "G", "GG", "XG", "36", "38", "40", "42", "44"];
+      const rows = Array.from(bySize.entries())
+        .sort((a, b) => {
+          const ai = sizeOrder.indexOf(a[0]);
+          const bi = sizeOrder.indexOf(b[0]);
+          return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+        })
+        .map(([size, info]) => `
+          <tr>
+            <td>${escapeHtml(size)}</td>
+            <td>${info.qty}</td>
+            <td>${money.format(info.value)}</td>
+          </tr>
+        `);
+      els.gradeSummary.innerHTML = rows.join("");
+    }
+
+    function renderClientGrade() {
+      if (!els.clientGradeSummary) return;
+      const bySize = new Map();
+      state.order.forEach(item => {
+        const current = bySize.get(item.size) || { qty: 0, value: 0 };
+        current.qty += item.qty;
+        current.value += item.qty * item.price;
+        bySize.set(item.size, current);
+      });
+
+      if (!bySize.size) {
+        els.clientGradeSummary.innerHTML = `<tr><td colspan="3">Sem itens</td></tr>`;
+        return;
+      }
+
+      const sizeOrder = ["PP", "P", "M", "G", "GG", "XG", "36", "38", "40", "42", "44"];
+      els.clientGradeSummary.innerHTML = Array.from(bySize.entries())
+        .sort((a, b) => {
+          const ai = sizeOrder.indexOf(a[0]);
+          const bi = sizeOrder.indexOf(b[0]);
+          return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+        })
+        .map(([size, info]) => `
+          <tr>
+            <td>${escapeHtml(size)}</td>
+            <td>${info.qty}</td>
+            <td>${money.format(info.value)}</td>
+          </tr>
+        `).join("");
+    }
+
+    function changeQty(key, delta) {
+      const item = state.order.find(line => line.key === key);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        state.order = state.order.filter(line => line.key !== key);
+      }
+      syncOrder("Pedido atualizado");
+    }
+
+    function removeLine(key) {
+      state.order = state.order.filter(item => item.key !== key);
+      syncOrder("Item removido");
+    }
+
+    function clearOrder() {
+      state.order = [];
+      syncOrder("Pedido limpo");
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 1700);
+    }
+
+    function pulseSync() {
+      els.orderSyncTag.textContent = "Atualizando";
+      els.clientOrderSyncTag.textContent = "Atualizando";
+      window.setTimeout(() => {
+        els.orderSyncTag.textContent = "Sincronizado";
+        els.clientOrderSyncTag.textContent = "Sincronizado";
+      }, 550);
+    }
+
+    function proposalText() {
+      const totals = orderTotals();
+      const lines = state.order.map(item => {
+        return `${item.name} | ${item.color} | Tam. ${item.size} | ${item.qty} un. | ${money.format(item.price * item.qty)}`;
+      });
+
+      return [
+        "Proposta - Sala Virtual Textil",
+        `Cliente: ${state.userName}`,
+        `Itens: ${totals.pieces}`,
+        `Modelos: ${totals.models}`,
+        `Total: ${money.format(totals.value)}`,
+        "",
+        ...lines
+      ].join("\n");
+    }
+
+    function openProposal() {
+      const totals = orderTotals();
+      const lines = state.order.length
+        ? state.order.map(item => `
+          <div class="proposal-row">
+            <span>${escapeHtml(item.name)}<br>${escapeHtml(item.color)} | Tam. ${escapeHtml(item.size)} | ${item.qty} un.</span>
+            <strong>${money.format(item.price * item.qty)}</strong>
+          </div>
+        `).join("")
+        : `<div class="proposal-row"><span>Nenhum item selecionado</span><strong>${money.format(0)}</strong></div>`;
+
+      els.proposalBody.innerHTML = `
+        <div class="proposal-row"><span>Cliente</span><strong>${escapeHtml(state.userName)}</strong></div>
+        <div class="proposal-row"><span>Total de pecas</span><strong>${totals.pieces}</strong></div>
+        <div class="proposal-row"><span>Modelos</span><strong>${totals.models}</strong></div>
+        ${lines}
+        <div class="proposal-row"><span>Valor total</span><strong>${money.format(totals.value)}</strong></div>
+      `;
+      els.proposalModal.classList.add("open");
+    }
+
+    function closeProposal() {
+      els.proposalModal.classList.remove("open");
+    }
+
+    async function copyProposal() {
+      try {
+        await navigator.clipboard.writeText(proposalText());
+        showToast("Proposta copiada");
+      } catch (error) {
+        showToast("Copie pela janela de proposta");
+      }
+    }
+
+    function setRtcStatus(message) {
+      const tag = document.querySelector("#rtcStatus");
+      if (tag) tag.textContent = message;
+      if (els.clientSessionStatus) els.clientSessionStatus.textContent = message;
+    }
+
+    function jitsiSafeRoomName() {
+      const base = String(state.roomCode || "LIVE-4821")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^A-Za-z0-9_-]/g, "")
+        .slice(0, 40) || "LIVE4821";
+      state.jitsiRoomName = `PortalF422aSalaVirtualTextil_${base}`;
+      return state.jitsiRoomName;
+    }
+
+    function jitsiRoomUrl() {
+      return `https://meet.jit.si/${encodeURIComponent(jitsiSafeRoomName())}`;
+    }
+
+    function ensureJitsiOpenButton() {
+      if (!els.startCallBtn || document.querySelector("#openJitsiExternalBtn")) return;
+      const button = document.createElement("button");
+      button.className = "secondary-action";
+      button.id = "openJitsiExternalBtn";
+      button.type = "button";
+      button.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14L21 3"></path></svg>
+        Abrir Jitsi
+      `;
+      button.addEventListener("click", () => openJitsiExternal());
+      els.startCallBtn.insertAdjacentElement("afterend", button);
+    }
+
+    async function openJitsiExternal() {
+      const url = jitsiRoomUrl();
+      try {
+        await publishJitsiCallStatus("ao_vivo").catch(error => console.warn("Não foi possível publicar chamada antes de abrir Jitsi", error));
+      } catch (error) {
+        console.warn("Jitsi status ignored", error);
+      }
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (popup) {
+        setRtcStatus("Jitsi aberto em nova aba");
+        showToast("Jitsi aberto em nova aba");
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          showToast("Popup bloqueado. Link do Jitsi copiado");
+        } catch (error) {
+          showToast("Popup bloqueado. Copie o link no convite");
+        }
+      }
+    }
+
+    function loadJitsiApi() {
+      if (window.JitsiMeetExternalAPI) return Promise.resolve();
+      if (window.__jitsiExternalApiPromise) return window.__jitsiExternalApiPromise;
+      window.__jitsiExternalApiPromise = new Promise((resolve, reject) => {
+        const finishError = message => reject(new Error(message));
+        const timer = window.setTimeout(() => {
+          finishError("Tempo esgotado ao carregar a API do Jitsi. Verifique internet, bloqueador de anúncios, antivírus ou rede corporativa.");
+        }, 12000);
+        const done = () => {
+          window.clearTimeout(timer);
+          if (window.JitsiMeetExternalAPI) {
+            resolve();
+          } else {
+            reject(new Error("O script do Jitsi carregou, mas a API não ficou disponível."));
+          }
+        };
+        const existing = document.querySelector('script[data-jitsi-api="true"]');
+        if (existing) {
+          existing.addEventListener("load", done, { once: true });
+          existing.addEventListener("error", () => {
+            window.clearTimeout(timer);
+            reject(new Error("Não foi possível carregar https://meet.jit.si/external_api.js"));
+          }, { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://meet.jit.si/external_api.js";
+        script.async = true;
+        script.dataset.jitsiApi = "true";
+        script.onload = done;
+        script.onerror = () => {
+          window.clearTimeout(timer);
+          reject(new Error("Não foi possível carregar https://meet.jit.si/external_api.js"));
+        };
+        document.head.appendChild(script);
+      }).catch(error => {
+        window.__jitsiExternalApiPromise = null;
+        throw error;
+      });
+      return window.__jitsiExternalApiPromise;
+    }
+
+    function disposeJitsiApi(key, stage) {
+      const api = state[key];
+      if (api) {
+        try { api.dispose(); } catch (error) { console.warn("Jitsi dispose failed", error); }
+      }
+      state[key] = null;
+      if (stage) {
+        stage.innerHTML = "";
+        stage.hidden = true;
+        stage.closest(".call-stage, .client-video-stage")?.classList.remove("jitsi-active", "camera-active", "screen-active");
+      }
+    }
+
+    function baseJitsiOptions(parentNode, displayName, startMuted = false) {
+      return {
+        roomName: jitsiSafeRoomName(),
+        parentNode,
+        width: "100%",
+        height: "100%",
+        lang: "pt-BR",
+        userInfo: {
+          displayName: displayName || state.userName || "Sala Virtual"
+        },
+        configOverwrite: {
+          prejoinPageEnabled: false,
+          startWithAudioMuted: startMuted,
+          startWithVideoMuted: startMuted,
+          disableDeepLinking: true,
+          enableWelcomePage: false
+        },
+        interfaceConfigOverwrite: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          MOBILE_APP_PROMO: false,
+          TILE_VIEW_MAX_COLUMNS: 2
+        }
+      };
+    }
+
+    function mountJitsiFallback(stage, displayName, startMuted = false) {
+      if (!stage) throw new Error("Área Jitsi não encontrada");
+      stage.innerHTML = "";
+      stage.hidden = false;
+      stage.closest(".call-stage, .client-video-stage")?.classList.add("jitsi-active", "camera-active");
+      const params = new URLSearchParams({
+        "config.prejoinPageEnabled": "false",
+        "config.startWithAudioMuted": String(Boolean(startMuted)),
+        "config.startWithVideoMuted": String(Boolean(startMuted)),
+        "config.disableDeepLinking": "true",
+        "userInfo.displayName": displayName || state.userName || "Sala Virtual"
+      });
+      const iframe = document.createElement("iframe");
+      iframe.src = `${jitsiRoomUrl()}#${params.toString()}`;
+      iframe.allow = "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write";
+      iframe.referrerPolicy = "no-referrer-when-downgrade";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "0";
+      iframe.setAttribute("allowfullscreen", "true");
+      stage.appendChild(iframe);
+      return iframe;
+    }
+
+    async function startJitsiAsOperator() {
+      if (!els.operatorJitsiStage) throw new Error("Área Jitsi do operador não encontrada");
+      disposeJitsiApi("jitsiOperatorApi", els.operatorJitsiStage);
+      try {
+        await loadJitsiApi();
+        els.operatorJitsiStage.hidden = false;
+        els.operatorJitsiStage.closest(".call-stage")?.classList.add("jitsi-active");
+        const api = new window.JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.operatorJitsiStage, "Operador", false));
+        state.jitsiOperatorApi = api;
+        api.addListener("videoConferenceJoined", () => setRtcStatus("Jitsi ao vivo"));
+        api.addListener("participantJoined", () => setRtcStatus("Cliente conectado"));
+        api.addListener("audioMuteStatusChanged", event => els.micBtn?.classList.toggle("active", !event?.muted));
+        api.addListener("videoMuteStatusChanged", event => els.cameraBtn?.classList.toggle("active", !event?.muted));
+        api.addListener("readyToClose", () => endCall());
+        api.addListener("screenSharingStatusChanged", event => {
+          els.screenBtn?.classList.toggle("active", Boolean(event?.on));
+          document.querySelector(".call-stage")?.classList.toggle("screen-active", Boolean(event?.on));
+        });
+        return api;
+      } catch (error) {
+        console.warn("Jitsi iframe API failed, using direct iframe fallback", error);
+        mountJitsiFallback(els.operatorJitsiStage, "Operador", false);
+        setRtcStatus("Jitsi aberto por fallback");
+        showToast("Jitsi aberto em modo compatibilidade");
+        return null;
+      }
+    }
+
+    async function joinJitsiAsClient(roomName = null) {
+      if (!els.clientJitsiStage || state.jitsiClientApi || els.clientJitsiStage.querySelector("iframe")) return;
+      if (roomName) state.jitsiRoomName = roomName;
+      try {
+        await loadJitsiApi();
+        els.clientJitsiStage.hidden = false;
+        els.clientVideoStage?.classList.add("jitsi-active", "camera-active");
+        const api = new window.JitsiMeetExternalAPI("meet.jit.si", baseJitsiOptions(els.clientJitsiStage, state.userName || "Cliente lojista", true));
+        state.jitsiClientApi = api;
+        api.addListener("videoConferenceJoined", () => setRtcStatus("Conectado ao Jitsi"));
+        api.addListener("readyToClose", () => {
+          disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+          setRtcStatus("Chamada encerrada");
+        });
+      } catch (error) {
+        console.warn("Jitsi client API failed, using fallback", error);
+        mountJitsiFallback(els.clientJitsiStage, state.userName || "Cliente lojista", true);
+        setRtcStatus("Conectado ao Jitsi");
+      }
+    }
+
+    function listenJitsiCallStatus() {
+      const firebase = window.firebasePortal;
+      if (state.role !== "client" || !firebase?.db || state.jitsiCallUnsubscribe) return;
+      const callRef = firebase.doc(firebase.db, "calls", state.roomCode);
+      state.jitsiCallUnsubscribe = firebase.onSnapshot(callRef, snapshot => {
+        const data = snapshot.data();
+        if (data?.provider === "jitsi" && data?.status === "ao_vivo") {
+          state.jitsiRoomName = data.roomName || jitsiSafeRoomName();
+          joinJitsiAsClient(state.jitsiRoomName).catch(error => {
+            console.warn("Jitsi client join failed", error);
+            setRtcStatus("Erro no Jitsi");
+          });
+        }
+        if (data?.status === "encerrada") {
+          disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+          setRtcStatus("Chamada encerrada");
+        }
+      }, error => {
+        console.warn("Jitsi call listener failed", error);
+      });
+    }
+
+    async function publishJitsiCallStatus(status) {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db) return;
+      await firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode), {
+        roomCode: state.roomCode,
+        provider: "jitsi",
+        status,
+        roomName: jitsiSafeRoomName(),
+        roomUrl: jitsiRoomUrl(),
+        operatorUid: state.firebaseUser?.uid || null,
+        operatorEmail: state.firebaseUser?.email || null,
+        updatedAt: firebase.serverTimestamp()
+      }, { merge: true });
+    }
+
+    async function startCall() {
+      if (!state.callStartedAt) {
+        state.callStartedAt = Date.now();
+        els.sessionStatus.textContent = "Chamada Jitsi em andamento";
+        state.timerId = window.setInterval(updateTimer, 1000);
+        updateTimer();
+      }
+
+      try {
+        await startJitsiAsOperator();
+        await publishJitsiCallStatus("ao_vivo").catch(error => {
+          console.warn("Não foi possível salvar status da chamada no Realtime Database", error);
+          showToast("Jitsi iniciou, mas não salvou status no banco");
+        });
+        setRtcStatus("Jitsi ao vivo");
+        showToast("Sala Jitsi iniciada");
+      } catch (error) {
+        console.warn("Jitsi start failed", error);
+        setRtcStatus("Erro no Jitsi");
+        showToast(error?.message || "Não foi possível iniciar o Jitsi");
+        ensureJitsiOpenButton();
+      }
+    }
+
+    async function startScreenShare() {
+      if (state.jitsiOperatorApi) {
+        state.jitsiOperatorApi.executeCommand("toggleShareScreen");
+        showToast("Compartilhamento pelo Jitsi");
+        return;
+      }
+      if (els.operatorJitsiStage?.querySelector("iframe")) {
+        showToast("Use o botão de compartilhar tela dentro do Jitsi");
+        return;
+      }
+      showToast("Inicie a chamada Jitsi primeiro");
+    }
+
+    async function stopScreenShare() {
+      if (state.jitsiOperatorApi && els.screenBtn?.classList.contains("active")) {
+        state.jitsiOperatorApi.executeCommand("toggleShareScreen");
+      }
+      els.screenBtn?.classList.remove("active");
+      document.querySelector(".call-stage")?.classList.remove("screen-active");
+    }
+
+    function toggleScreenShare() {
+      startScreenShare();
+    }
+
+    async function endCall() {
+      if (state.timerId) {
+        window.clearInterval(state.timerId);
+      }
+      state.timerId = null;
+      state.callStartedAt = null;
+      els.sessionStatus.textContent = "Sessão pronta";
+      els.sessionTime.textContent = "00:00";
+      await publishJitsiCallStatus("encerrada").catch(error => console.warn("End Jitsi save failed", error));
+      disposeJitsiApi("jitsiOperatorApi", els.operatorJitsiStage);
+      disposeJitsiApi("jitsiClientApi", els.clientJitsiStage);
+      els.cameraBtn?.classList.remove("active");
+      els.micBtn?.classList.remove("active");
+      els.screenBtn?.classList.remove("active");
+      setRtcStatus("Pronta");
+      showToast("Chamada Jitsi encerrada");
+    }
+
+    function updateTimer() {
+      if (!state.callStartedAt) return;
+      const elapsed = Math.floor((Date.now() - state.callStartedAt) / 1000);
+      const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+      const seconds = String(elapsed % 60).padStart(2, "0");
+      els.sessionTime.textContent = `${minutes}:${seconds}`;
+    }
+
+    function toggleControl(button) {
+      if (button === els.cameraBtn && state.jitsiOperatorApi) {
+        state.jitsiOperatorApi.executeCommand("toggleVideo");
+        button.classList.toggle("active");
+        return;
+      }
+      if (button === els.micBtn && state.jitsiOperatorApi) {
+        state.jitsiOperatorApi.executeCommand("toggleAudio");
+        button.classList.toggle("active");
+        return;
+      }
+      button.classList.toggle("active");
+    }
+
+    function syncClientCamera() {
+      if (state.jitsiClientApi || state.jitsiOperatorApi) return;
+      els.clientVideoStage?.classList.remove("camera-active", "screen-active");
+      if (els.clientOperatorVideo) {
+        els.clientOperatorVideo.srcObject = null;
+        els.clientOperatorVideo.pause?.();
+      }
+    }
+
+    function addChatMessage(message) {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble operator";
+      bubble.textContent = message;
+      els.chatFeed.appendChild(bubble);
+      els.chatFeed.scrollTop = els.chatFeed.scrollHeight;
+    }
+
+    function setLoginRole(role) {
+      els.loginTabs.forEach(button => {
+        button.classList.toggle("active", button.dataset.loginRole === role);
+      });
+      els.operatorLogin.hidden = role !== "operator";
+      els.clientLogin.hidden = role !== "client";
+      els.registerForm.hidden = role !== "register";
+    }
+
+    function initials(name) {
+      return String(name || "Cliente")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0]?.toUpperCase())
+        .join("") || "CL";
+    }
+
+    function updateClientIdentity(name) {
+      state.userName = name || "Lojista";
+      els.customerNameDisplay.textContent = state.userName;
+      els.clientNameSummary.textContent = state.userName;
+      els.clientBuyerName.textContent = state.userName;
+      els.customerAvatar.textContent = initials(state.userName);
+      updateAccountBadge();
+    }
+
+    function updateAccountBadge() {
+      const operatorLabel = state.role === "operator" ? "Operador" : state.userName;
+      els.accountAvatar.textContent = state.role === "operator" ? "OP" : initials(state.userName);
+      els.accountName.textContent = state.firebaseUser?.email || operatorLabel;
+      els.clientAccountAvatar.textContent = state.role === "operator" ? "OP" : initials(state.userName);
+      els.clientAccountName.textContent = state.firebaseUser?.email || (state.role === "operator" ? "Operador" : state.userName);
+    }
+
+    function showOperatorScreen(replaceUrl = false) {
+      els.loginScreen.hidden = true;
+      els.loginScreen.classList.add("is-locked");
+      els.clientApp.classList.add("is-locked");
+      els.app.classList.remove("is-locked");
+      els.roomCodeLabel.textContent = state.roomCode;
+      els.sessionStatus.textContent = "Sessao pronta";
+      updateAccountBadge();
+      setPageUrl("operador", replaceUrl);
+      renderCatalog();
+      renderOrder();
+      renderProductAdminList();
+      showcaseProduct(products.find(product => product.id === state.featuredProductId) || products[0]);
+    }
+
+    function showClientScreen(replaceUrl = false) {
+      els.loginScreen.hidden = true;
+      els.loginScreen.classList.add("is-locked");
+      els.app.classList.add("is-locked");
+      els.clientApp.classList.remove("is-locked");
+      els.clientRoomCodeLabel.textContent = state.roomCode;
+      els.clientSessionStatus.textContent = "Conectado a live";
+      els.viewAdminBtn.hidden = state.role !== "operator";
+      updateAccountBadge();
+      setPageUrl("lojista", replaceUrl);
+      renderClientCatalog();
+      renderClientOrder();
+      showcaseProduct(products.find(product => product.id === state.featuredProductId) || products[0]);
+      syncClientCamera();
+      listenJitsiCallStatus();
+    }
+
+    function signIn(role, name, user = null) {
+      state.role = role;
+      state.firebaseUser = user;
+      updateClientIdentity(name);
+      saveSession();
+      if (role === "client") {
+        showClientScreen();
+      } else {
+        showOperatorScreen();
+      }
+    }
+
+    function signOut() {
+      endCall();
+      if (window.portalFirebaseSignOut) {
+        window.portalFirebaseSignOut();
+      }
+      state.role = null;
+      state.firebaseUser = null;
+      els.app.classList.add("is-locked");
+      els.clientApp.classList.add("is-locked");
+      els.loginScreen.hidden = false;
+      els.loginScreen.classList.remove("is-locked");
+      clearSession();
+      setPageUrl("login");
+      showToast("Sessao encerrada");
+    }
+
+    function openInvite() {
+      els.inviteCode.textContent = state.roomCode;
+      els.invitePassword.textContent = "Firebase Auth";
+      els.inviteLink.value = roomLink();
+      els.inviteModal.classList.add("open");
+    }
+
+    function closeInvite() {
+      els.inviteModal.classList.remove("open");
+    }
+
+    async function copyInvite() {
+      const text = `Convite Sala Virtual Textil\nLink: ${roomLink()}\nCódigo: ${state.roomCode}\nAcesso: entrar com e-mail e senha cadastrados no Firebase`;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Convite copiado");
+      } catch (error) {
+        els.inviteLink.select();
+        showToast("Link selecionado");
+      }
+    }
+
+    function productFromForm() {
+      const id = els.newProductId.value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "-");
+      const price = parsePrice(els.newProductPrice.value);
+      const stock = Number(els.newProductStock.value);
+      const sizes = parseList(els.newProductSizes.value);
+      const colors = parseColors(els.newProductColors.value);
+
+      if (!id || !els.newProductName.value.trim() || !Number.isFinite(price) || price <= 0 || !stock || !sizes.length || !colors.length) {
+        return null;
+      }
+
+      return {
+        id,
+        name: els.newProductName.value.trim(),
+        category: els.newProductCategory.value,
+        origin: els.newProductOrigin.value.trim(),
+        fabric: els.newProductFabric.value.trim(),
+        price,
+        stock,
+        sizes,
+        colors,
+        type: els.newProductType.value,
+        visual: "#eef3f0"
+      };
+    }
+
+    function fillProductForm(product) {
+      els.newProductId.value = product.id;
+      els.newProductName.value = product.name;
+      els.newProductCategory.value = product.category;
+      els.newProductOrigin.value = product.origin;
+      els.newProductFabric.value = product.fabric;
+      els.newProductType.value = product.type;
+      els.newProductPrice.value = String(product.price).replace(".", ",");
+      els.newProductStock.value = product.stock;
+      els.newProductSizes.value = product.sizes.join(", ");
+      els.newProductColors.value = product.colors.map(color => `${color.name}:${color.hex}`).join(", ");
+      els.newProductName.focus();
+    }
+
+    function saveProduct(product) {
+      const index = products.findIndex(item => item.id === product.id);
+      if (index >= 0) {
+        products[index] = product;
+      } else {
+        products.unshift(product);
+      }
+      saveProducts();
+      renderCatalog();
+      renderProductAdminList();
+      showcaseProduct(product);
+      showToast("Peca salva");
+    }
+
+    function deleteProduct(productId) {
+      products = products.filter(product => product.id !== productId);
+      state.order = state.order.filter(item => item.productId !== productId);
+      saveProducts();
+      renderCatalog();
+      renderOrder();
+      renderProductAdminList();
+      showcaseProduct(products[0]);
+      showToast("Peca removida");
+    }
+
+    function renderProductAdminList() {
+      if (!els.productAdminList) return;
+      if (!products.length) {
+        els.productAdminList.innerHTML = `
+          <div class="empty-order">
+            <div>
+              <strong>Nenhuma peca cadastrada</strong>
+              <span>Cadastre o primeiro item do catalogo.</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      els.productAdminList.innerHTML = products.map(product => `
+        <div class="admin-product-line" data-admin-product="${escapeHtml(product.id)}">
+          <div>
+            <h3>${escapeHtml(product.name)}</h3>
+            <p>${escapeHtml(product.id)} | ${escapeHtml(product.category)} | ${money.format(product.price)}</p>
+          </div>
+          <div class="admin-actions">
+            <button class="icon-button" type="button" data-edit-product="${escapeHtml(product.id)}" title="Editar" aria-label="Editar">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>
+            </button>
+            <button class="icon-button" type="button" data-delete-product="${escapeHtml(product.id)}" title="Remover" aria-label="Remover">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg>
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openProductModal() {
+      renderProductAdminList();
+      els.productModal.classList.add("open");
+    }
+
+    function closeProductModal() {
+      els.productModal.classList.remove("open");
+    }
+
+    function restoreDefaultProducts() {
+      products = defaultProducts.map(product => ({ ...product, colors: [...product.colors], sizes: [...product.sizes] }));
+      state.order = [];
+      saveProducts();
+      renderCatalog();
+      renderOrder();
+      renderProductAdminList();
+      showcaseProduct(products[0]);
+      showToast("Catalogo restaurado");
+    }
+
+    function applyRemoteProducts(remoteProducts) {
+      if (!Array.isArray(remoteProducts) || !remoteProducts.length) return;
+      products = remoteProducts;
+      localStorage.setItem("textil-products", JSON.stringify(products));
+      state.featuredProductId = products[0]?.id || null;
+      renderCatalog();
+      renderOrder();
+      renderProductAdminList();
+      showcaseProduct(products.find(product => product.id === state.featuredProductId) || products[0]);
+    }
+
+    function normalizeStatus(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\s-]+/g, "_");
+    }
+
+    function profileApprovalState(profile = {}) {
+      const status = normalizeStatus(profile.status);
+      if (profile.approved === true || ["aprovado", "approved", "ativo", "active"].includes(status)) {
+        return "approved";
+      }
+      if (["rejeitado", "rejected", "bloqueado", "blocked", "recusado"].includes(status)) {
+        return "rejected";
+      }
+      if (profile.approved === false || ["pendente", "pending", "aguardando_aprovacao", "aguardando"].includes(status)) {
+        return "pending";
+      }
+      return "approved";
+    }
+
+    function profileRole(profile = {}) {
+      return profile.role === "operator" ? "operator" : "client";
+    }
+
+    async function firebaseRegister() {
+      if (!window.portalFirebaseRegister) {
+        setFirebaseStatus("Firebase ainda não carregou. Abra pelo Firebase Hosting ou aguarde alguns segundos.", "warn");
+        showToast("Aguarde o Firebase carregar");
+        return;
+      }
+
+      const data = {
+        name: els.registerName.value.trim(),
+        company: els.registerCompany.value.trim(),
+        cnpj: els.registerCnpj.value.trim(),
+        phone: els.registerPhone.value.trim(),
+        requestedRole: els.registerRole.value,
+        email: els.registerEmail.value.trim().toLowerCase(),
+        password: els.registerPassword.value,
+        passwordConfirm: els.registerPasswordConfirm.value
+      };
+
+      if (!data.name || !data.company || !data.email || !data.password) {
+        showToast("Preencha nome, empresa, e-mail e senha");
+        return;
+      }
+      if (data.password.length < 6) {
+        showToast("A senha precisa ter pelo menos 6 caracteres");
+        return;
+      }
+      if (data.password !== data.passwordConfirm) {
+        showToast("As senhas nao conferem");
+        return;
+      }
+
+      try {
+        setFirebaseStatus("Enviando cadastro para o Realtime Database...", "warn");
+        await window.portalFirebaseRegister(data);
+        els.registerForm.reset();
+        els.clientRoomCode.value = data.email;
+        setLoginRole("client");
+        setFirebaseStatus("Cadastro gravado no Realtime Database. Agora aprove o usuário em usuarios/{uid} ou no painel de aprovações.", "ok");
+        showToast("Cadastro enviado. Aprove no Realtime Database para liberar acesso.");
+      } catch (error) {
+        console.warn("Firebase register failed", error);
+        setFirebaseStatus(`Erro no cadastro: ${error?.code || error?.message || error}`, "danger");
+        const code = error?.code || "";
+        if (code.includes("email-already-in-use")) {
+          showToast("Este e-mail ja esta cadastrado");
+        } else if (code.includes("weak-password")) {
+          showToast("Senha fraca. Use pelo menos 6 caracteres");
+        } else if (code.includes("permission-denied")) {
+          showToast("Sem permissão para gravar cadastro no Realtime Database");
+        } else {
+          showToast("Nao foi possivel enviar cadastro");
+        }
+      }
+    }
+
+    async function firebaseLogin(email, password, requestedRole = "client") {
+      if (!window.portalFirebaseSignIn) {
+        setFirebaseStatus("Firebase ainda não carregou. Abra pelo Firebase Hosting ou aguarde alguns segundos.", "warn");
+        showToast("Aguarde o Firebase carregar");
+        return;
+      }
+
+      try {
+        setFirebaseStatus("Validando login no Firebase Auth e perfil no Realtime Database...", "warn");
+        await window.portalFirebaseSignIn(email, password, requestedRole);
+      } catch (error) {
+        console.warn("Firebase login failed", error);
+        const message = String(error?.message || "").toLowerCase();
+        setFirebaseStatus(`Falha no acesso: ${error?.code || error?.message || "verifique e-mail, senha e aprovação"}`, "danger");
+        if (message.includes("perfil criado")) {
+          showToast("Perfil criado. Aprove no Realtime Database.");
+        } else if (message.includes("pendente")) {
+          showToast("Cadastro pendente de aprovação no Firebase");
+        } else if (message.includes("bloqueado") || message.includes("rejeitado") || message.includes("recusado")) {
+          showToast("Cadastro não aprovado no Firebase");
+        } else {
+          showToast("Login inválido no Firebase");
+        }
+      }
+    }
+
+
+    async function firebaseGoogleAccess(requestedRole = "client", registration = {}) {
+      if (!window.portalFirebaseGoogleSignIn) {
+        setFirebaseStatus("Firebase ainda não carregou. Aguarde alguns segundos e tente novamente.", "warn");
+        showToast("Aguarde o Firebase carregar");
+        return;
+      }
+
+      try {
+        setFirebaseStatus("Abrindo acesso com Google...", "warn");
+        await window.portalFirebaseGoogleSignIn(requestedRole, registration);
+      } catch (error) {
+        console.warn("Firebase Google login failed", error);
+        const message = String(error?.message || "").toLowerCase();
+        const code = error?.code || "";
+        setFirebaseStatus(`Falha no Google: ${code || error?.message || "verifique se o provedor Google está ativado"}`, "danger");
+        if (message.includes("perfil criado")) {
+          showToast("Perfil Google criado. Aprove no Realtime Database.");
+        } else if (message.includes("pendente")) {
+          showToast("Cadastro Google pendente de aprovação");
+        } else if (message.includes("bloqueado") || message.includes("rejeitado") || message.includes("recusado")) {
+          showToast("Cadastro Google não aprovado");
+        } else if (code.includes("popup-closed-by-user")) {
+          showToast("Login Google cancelado");
+        } else if (code.includes("operation-not-allowed")) {
+          showToast("Ative o provedor Google no Firebase Auth");
+        } else {
+          showToast("Não foi possível entrar com Google");
+        }
+      }
+    }
+
+    window.addEventListener("firebase-ready", event => {
+      const firebase = event.detail;
+      if (!firebase?.db) return;
+      setFirebaseStatus("Firebase Realtime Database conectado ao projeto portal-f422a. Faça login, cadastre um usuário ou acesse com Google.", "ok");
+
+      window.portalFirebaseSignIn = async (email, password, requestedRole = "client") => {
+        const credential = await firebase.signInWithEmailAndPassword(firebase.auth, email, password);
+        const profileRef = firebase.doc(firebase.db, "usuarios", credential.user.uid);
+        const profileSnap = await firebase.getDoc(profileRef);
+        if (!profileSnap.exists()) {
+          const now = firebase.serverTimestamp();
+          const role = requestedRole === "operator" ? "operator" : "client";
+          const pendingProfile = {
+            uid: credential.user.uid,
+            name: credential.user.displayName || credential.user.email || "Usuário",
+            company: "",
+            cnpj: "",
+            phone: "",
+            email: credential.user.email || email,
+            role,
+            requestedRole: role,
+            approved: false,
+            status: "pendente",
+            createdAt: now,
+            updatedAt: now
+          };
+          await firebase.setDoc(profileRef, pendingProfile, { merge: true });
+          await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", credential.user.uid), pendingProfile, { merge: true });
+          await firebase.signOut(firebase.auth);
+          throw new Error("Perfil criado e pendente de aprovação no Realtime Database");
+        }
+
+        const profile = profileSnap.data();
+        const approval = profileApprovalState(profile);
+        if (approval === "pending") {
+          await firebase.signOut(firebase.auth);
+          throw new Error("Cadastro pendente de aprovação no Firebase");
+        }
+        if (approval === "rejected") {
+          await firebase.signOut(firebase.auth);
+          throw new Error("Cadastro bloqueado, recusado ou rejeitado no Firebase");
+        }
+
+        const role = profileRole(profile);
+        const name = profile.name || credential.user.displayName || credential.user.email || "Lojista";
+        setFirebaseStatus(`Conectado ao Realtime Database como ${role === "operator" ? "operador" : "cliente"}.`, "ok");
+        signIn(role, name, credential.user);
+      };
+
+      window.portalFirebaseRegister = async registration => {
+        const credential = await firebase.createUserWithEmailAndPassword(
+          firebase.auth,
+          registration.email,
+          registration.password
+        );
+        const now = firebase.serverTimestamp();
+        const role = registration.requestedRole === "operator" ? "operator" : "client";
+        const profile = {
+          uid: credential.user.uid,
+          name: registration.name,
+          company: registration.company,
+          cnpj: registration.cnpj || "",
+          phone: registration.phone || "",
+          email: registration.email,
+          role,
+          requestedRole: role,
+          approved: false,
+          status: "pendente",
+          createdAt: now,
+          updatedAt: now
+        };
+
+        if (firebase.updateProfile) {
+          await firebase.updateProfile(credential.user, { displayName: registration.name });
+        }
+        await firebase.setDoc(firebase.doc(firebase.db, "usuarios", credential.user.uid), profile, { merge: true });
+        await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", credential.user.uid), profile, { merge: true });
+        await firebase.signOut(firebase.auth);
+        return profile;
+      };
+
+
+      window.portalFirebaseGoogleSignIn = async (requestedRole = "client", registration = {}) => {
+        if (!firebase.GoogleAuthProvider || !firebase.signInWithPopup) {
+          throw new Error("Provedor Google não carregado no Firebase Auth");
+        }
+
+        const provider = new firebase.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        const credential = await firebase.signInWithPopup(firebase.auth, provider);
+        const user = credential.user;
+        const profileRef = firebase.doc(firebase.db, "usuarios", user.uid);
+        const profileSnap = await firebase.getDoc(profileRef);
+        const now = firebase.serverTimestamp();
+        const role = requestedRole === "operator" ? "operator" : "client";
+
+        if (!profileSnap.exists()) {
+          const profile = {
+            uid: user.uid,
+            name: registration.name || user.displayName || user.email || "Usuário Google",
+            company: registration.company || "",
+            cnpj: registration.cnpj || "",
+            phone: registration.phone || "",
+            email: user.email || registration.email || "",
+            photoURL: user.photoURL || "",
+            provider: "google",
+            role,
+            requestedRole: role,
+            approved: false,
+            status: "pendente",
+            createdAt: now,
+            updatedAt: now,
+            lastLoginAt: now
+          };
+          await firebase.setDoc(profileRef, profile, { merge: true });
+          await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", user.uid), profile, { merge: true });
+          await firebase.signOut(firebase.auth);
+          throw new Error("Perfil criado e pendente de aprovação no Realtime Database");
+        }
+
+        const profile = profileSnap.data();
+        const approval = profileApprovalState(profile);
+        if (approval === "pending") {
+          await firebase.signOut(firebase.auth);
+          throw new Error("Cadastro pendente de aprovação no Firebase");
+        }
+        if (approval === "rejected") {
+          await firebase.signOut(firebase.auth);
+          throw new Error("Cadastro bloqueado, recusado ou rejeitado no Firebase");
+        }
+
+        await firebase.setDoc(profileRef, {
+          email: user.email || profile.email || "",
+          photoURL: user.photoURL || profile.photoURL || "",
+          provider: profile.provider || "google",
+          lastLoginAt: now,
+          updatedAt: now
+        }, { merge: true });
+
+        const finalRole = profileRole(profile);
+        const name = profile.name || user.displayName || user.email || "Lojista";
+        setFirebaseStatus(`Conectado com Google como ${finalRole === "operator" ? "operador" : "cliente"}.`, "ok");
+        signIn(finalRole, name, user);
+      };
+
+      window.portalFirebaseSignOut = async () => {
+        try {
+          await firebase.signOut(firebase.auth);
+        } catch (error) {
+          console.warn("Firebase sign out failed", error);
+        }
+      };
+
+
+      window.portalSaveOrder = async payload => {
+        const now = firebase.serverTimestamp();
+        const data = {
+          ...payload,
+          updatedAt: now,
+          portalId: "portal-f422a"
+        };
+        await firebase.setDoc(firebase.doc(firebase.db, "pedidos", payload.roomCode), data, { merge: true });
+        await firebase.setDoc(firebase.doc(firebase.db, "portais", "portal-f422a", "pedidos", payload.roomCode), data, { merge: true });
+        return data;
+      };
+
+      window.portalLoadApprovalRequests = async () => {
+        const snapshot = await firebase.getDocs(firebase.collection(firebase.db, "solicitacoesCadastro"));
+        return snapshot.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(profile => profileApprovalState(profile) === "pending");
+      };
+
+      window.portalResolveApproval = async (uid, approved) => {
+        const now = firebase.serverTimestamp();
+        const status = approved ? "aprovado" : "rejeitado";
+        const data = { approved, status, updatedAt: now, approvedAt: approved ? now : null };
+        await firebase.setDoc(firebase.doc(firebase.db, "usuarios", uid), data, { merge: true });
+        await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", uid), data, { merge: true });
+      };
+
+      const orderRef = firebase.doc(firebase.db, "pedidos", state.roomCode);
+      firebase.onSnapshot(orderRef, snapshot => {
+        const data = snapshot.data();
+        if (data?.order && Array.isArray(data.order)) {
+          applyRemoteOrder(data);
+        }
+      }, error => {
+        console.warn("Firebase order listener failed", error);
+        updateOrderCloudStatus("Sem permissão");
+      });
+
+      firebase.onAuthStateChanged(firebase.auth, async user => {
+        if (!user) return;
+        try {
+          const profileSnap = await firebase.getDoc(firebase.doc(firebase.db, "usuarios", user.uid));
+          if (!profileSnap.exists()) return;
+          const profile = profileSnap.data();
+          const approval = profileApprovalState(profile);
+          if (approval !== "approved") {
+            await firebase.signOut(firebase.auth);
+            clearSession();
+            showToast(approval === "pending" ? "Cadastro aguardando aprovacao" : "Cadastro nao aprovado");
+            return;
+          }
+          const role = profileRole(profile);
+          state.firebaseUser = user;
+          state.role = role;
+          updateClientIdentity(profile.name || user.displayName || user.email || "Lojista");
+          saveSession();
+          const requestedPage = new URLSearchParams(window.location.search).get("pagina");
+          if (requestedPage === "lojista" || role === "client") {
+            showClientScreen(true);
+          } else {
+            showOperatorScreen(true);
+          }
+        } catch (error) {
+          console.warn("Firebase auth profile failed", error);
+        }
+      });
+
+      const catalogRef = firebase.doc(firebase.db, "portais", "portal-f422a");
+
+      window.portalSaveProductsToFirebase = async nextProducts => {
+        try {
+          await window.portalSeedDatabase(nextProducts, { silent: true });
+        } catch (error) {
+          console.warn("Firebase catalog save failed", error);
+        }
+      };
+
+      window.portalSeedDatabase = async (sourceProducts = products, options = {}) => {
+        const cleanProducts = cloneProductsForDatabase(sourceProducts);
+        const now = firebase.serverTimestamp();
+
+        await firebase.setDoc(catalogRef, {
+          name: "Sala Virtual Textil",
+          roomCode: state.roomCode,
+          products: cleanProducts,
+          totalProducts: cleanProducts.length,
+          updatedAt: now
+        }, { merge: true });
+
+        await firebase.setDoc(firebase.doc(firebase.db, "salas", state.roomCode), {
+          code: state.roomCode,
+          portalId: "portal-f422a",
+          status: "pronta",
+          updatedAt: now
+        }, { merge: true });
+
+        await Promise.all(cleanProducts.map(product => Promise.all([
+          firebase.setDoc(firebase.doc(firebase.db, "produtos", product.id), {
+            ...product,
+            portalId: "portal-f422a",
+            updatedAt: now
+          }, { merge: true }),
+          firebase.setDoc(firebase.doc(firebase.db, "portais", "portal-f422a", "itens", product.id), {
+            ...product,
+            updatedAt: now
+          }, { merge: true })
+        ])));
+
+        if (!options.silent) {
+          showToast(`${cleanProducts.length} itens enviados ao Firebase`);
+        }
+      };
+
+      firebase.onSnapshot(catalogRef, snapshot => {
+        const data = snapshot.data();
+        if (data?.products) {
+          applyRemoteProducts(data.products);
+        } else {
+          window.portalSeedDatabase(products, { silent: true });
+        }
+      }, error => {
+        console.warn("Firebase catalog listener failed", error);
+        showToast("Realtime Database sem permissão de leitura");
+      });
+
+      showToast("Firebase conectado");
+    });
+
+    window.addEventListener("firebase-error", event => {
+      console.warn("Firebase connection failed", event.detail);
+      setFirebaseStatus(`Firebase indisponível: ${event.detail?.message || event.detail || "erro ao carregar SDK"}`, "danger");
+      showToast("Firebase indisponível");
+    });
+
+
+    function approvalLine(profile) {
+      const uid = profile.uid || profile.id || "";
+      const role = profile.requestedRole === "operator" || profile.role === "operator" ? "Operador" : "Cliente lojista";
+      return `
+        <div class="approval-line" data-approval-uid="${escapeHtml(uid)}">
+          <div>
+            <h3>${escapeHtml(profile.name || "Usuário sem nome")}</h3>
+            <p>${escapeHtml(profile.company || "Empresa não informada")} · ${escapeHtml(profile.email || "sem e-mail")}<br>CNPJ: ${escapeHtml(profile.cnpj || "não informado")} · WhatsApp: ${escapeHtml(profile.phone || "não informado")} · Perfil: ${role}</p>
+          </div>
+          <div class="approval-actions">
+            <button class="secondary-action danger-action" type="button" data-approval-action="reject">Recusar</button>
+            <button class="primary-action" type="button" data-approval-action="approve">Aprovar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderApprovalRequests() {
+      const list = document.querySelector("#approvalsList");
+      if (!list) return;
+      if (typeof window.portalLoadApprovalRequests !== "function") {
+        list.innerHTML = `<div class="empty-order"><div><strong>Firebase ainda não carregou</strong><span>Aguarde a conexão para visualizar solicitações.</span></div></div>`;
+        return;
+      }
+      list.innerHTML = `<div class="empty-order"><div><strong>Buscando cadastros</strong><span>Carregando solicitações pendentes...</span></div></div>`;
+      try {
+        const requests = await window.portalLoadApprovalRequests();
+        if (!requests.length) {
+          list.innerHTML = `<div class="empty-order"><div><strong>Nenhuma solicitação pendente</strong><span>Novos cadastros aparecerão aqui automaticamente quando forem enviados.</span></div></div>`;
+          return;
+        }
+        list.innerHTML = requests.map(approvalLine).join("");
+      } catch (error) {
+        console.warn("Approval list failed", error);
+        list.innerHTML = `<div class="empty-order"><div><strong>Sem permissão para aprovações</strong><span>Confira as regras do Realtime Database para usuarios e solicitacoesCadastro.</span></div></div>`;
+      }
+    }
+
+    function openApprovalsModal() {
+      document.querySelector("#approvalsModal")?.classList.add("open");
+      renderApprovalRequests();
+    }
+
+    function closeApprovalsModal() {
+      document.querySelector("#approvalsModal")?.classList.remove("open");
+    }
+
+    async function resolveApproval(uid, approved) {
+      if (!uid || typeof window.portalResolveApproval !== "function") return;
+      try {
+        await window.portalResolveApproval(uid, approved);
+        showToast(approved ? "Usuário aprovado" : "Usuário recusado");
+        renderApprovalRequests();
+      } catch (error) {
+        console.warn("Resolve approval failed", error);
+        showToast("Não foi possível atualizar usuário");
+      }
+    }
+
+    function initializeFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("sala")) {
+        setLoginRole("client");
+      }
+      if (params.get("perfil") === "cliente") {
+        setLoginRole("client");
+      }
+    }
+
+    els.loginTabs.forEach(button => {
+      button.addEventListener("click", () => setLoginRole(button.dataset.loginRole));
+    });
+
+    els.operatorLogin.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!els.operatorUser.value.trim() || !els.operatorPassword.value.trim()) {
+        showToast("Informe login e senha");
+        return;
+      }
+      firebaseLogin(els.operatorUser.value.trim(), els.operatorPassword.value.trim(), "operator");
+    });
+
+    els.clientLogin.addEventListener("submit", event => {
+      event.preventDefault();
+      const email = els.clientRoomCode.value.trim();
+      const password = els.clientRoomPassword.value.trim();
+      if (!email || !password) {
+        showToast("Informe e-mail e senha");
+        return;
+      }
+      firebaseLogin(email, password, "client");
+    });
+
+    els.registerForm.addEventListener("submit", event => {
+      event.preventDefault();
+      firebaseRegister();
+    });
+
+
+    els.operatorGoogleBtn?.addEventListener("click", () => {
+      firebaseGoogleAccess("operator", {});
+    });
+
+    els.clientGoogleBtn?.addEventListener("click", () => {
+      firebaseGoogleAccess("client", {});
+    });
+
+    els.registerGoogleBtn?.addEventListener("click", () => {
+      firebaseGoogleAccess(els.registerRole.value, {
+        name: els.registerName.value.trim(),
+        company: els.registerCompany.value.trim(),
+        cnpj: els.registerCnpj.value.trim(),
+        phone: els.registerPhone.value.trim(),
+        requestedRole: els.registerRole.value
+      });
+    });
+
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-add-product]");
+      if (!button) return;
+      const card = button.closest("[data-product-id]");
+      const productId = button.dataset.addProduct;
+      const color = card.querySelector(".color-select").value;
+      const size = card.querySelector(".size-select").value;
+      const qty = Math.max(1, Number(card.querySelector(".qty-input").value || 1));
+      addToOrder(productId, color, size, qty);
+    }, true);
+
+    els.catalogGrid.addEventListener("click", event => {
+      const card = event.target.closest("[data-product-id]");
+      if (!card) return;
+      const product = products.find(item => item.id === card.dataset.productId);
+      showcaseProduct(product);
+    });
+
+    els.orderList.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const line = button.closest(".order-line");
+      const key = line.dataset.key;
+      const action = button.dataset.action;
+      if (action === "increase") changeQty(key, 1);
+      if (action === "decrease") changeQty(key, -1);
+      if (action === "remove") removeLine(key);
+    });
+
+    [els.searchInput, els.categoryFilter, els.originFilter, els.sortSelect].forEach(control => {
+      control.addEventListener("input", renderCatalog);
+      control.addEventListener("change", renderCatalog);
+    });
+
+    els.viewClientBtn.addEventListener("click", () => {
+      state.role = "operator";
+      showClientScreen();
+      showToast("Tela do lojista");
+    });
+    els.viewAdminBtn.addEventListener("click", () => {
+      showOperatorScreen();
+      showToast("Tela do operador");
+    });
+    els.clientLogoutBtn.addEventListener("click", signOut);
+    els.clientProposalBtn.addEventListener("click", openProposal);
+    els.clientCatalogStrip.addEventListener("click", event => {
+      const card = event.target.closest("[data-client-product-id]");
+      if (!card) return;
+      const product = products.find(item => item.id === card.dataset.clientProductId);
+      showcaseProduct(product);
+    });
+    els.inviteBtn.addEventListener("click", openInvite);
+    els.closeInviteBtn.addEventListener("click", closeInvite);
+    els.closeInviteBottomBtn.addEventListener("click", closeInvite);
+    els.copyInviteBtn.addEventListener("click", copyInvite);
+    els.productAdminBtn.addEventListener("click", openProductModal);
+    els.catalogAdminBtn.addEventListener("click", openProductModal);
+    els.closeProductModalBtn.addEventListener("click", closeProductModal);
+    els.closeProductBottomBtn.addEventListener("click", closeProductModal);
+    els.logoutBtn.addEventListener("click", signOut);
+    els.productForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const product = productFromForm();
+      if (!product) {
+        showToast("Revise os dados da peca");
+        return;
+      }
+      saveProduct(product);
+      els.productForm.reset();
+      els.newProductStock.value = "24";
+    });
+    els.productAdminList.addEventListener("click", event => {
+      const editButton = event.target.closest("[data-edit-product]");
+      const deleteButton = event.target.closest("[data-delete-product]");
+      if (editButton) {
+        const product = products.find(item => item.id === editButton.dataset.editProduct);
+        if (product) fillProductForm(product);
+      }
+      if (deleteButton) {
+        deleteProduct(deleteButton.dataset.deleteProduct);
+      }
+    });
+    els.resetProductsBtn.addEventListener("click", restoreDefaultProducts);
+    els.seedProductsBtn.addEventListener("click", createItemsInFirebase);
+    els.clearOrderBtn.addEventListener("click", clearOrder);
+    els.proposalBtn.addEventListener("click", openProposal);
+    els.closeProposalBtn.addEventListener("click", closeProposal);
+    els.closeProposalBottomBtn.addEventListener("click", closeProposal);
+    els.copyProposalBtn.addEventListener("click", copyProposal);
+    els.shareOrderBtn.addEventListener("click", () => {
+      openProposal();
+      showToast("Pedido pronto para compartilhar");
+    });
+    els.confirmOrderBtn.addEventListener("click", async () => {
+      const totals = orderTotals();
+      if (!totals.pieces) {
+        showToast("Adicione itens ao pedido");
+        return;
+      }
+      await saveOrderToFirebase("confirmado");
+    });
+    els.startCallBtn.addEventListener("click", startCall);
+    els.endCallBtn.addEventListener("click", endCall);
+    els.micBtn.addEventListener("click", () => toggleControl(els.micBtn));
+    els.cameraBtn.addEventListener("click", () => toggleControl(els.cameraBtn));
+    els.screenBtn.addEventListener("click", toggleScreenShare);
+    els.chatForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const message = els.chatMessage.value.trim();
+      if (!message) return;
+      addChatMessage(message);
+      els.chatMessage.value = "";
+    });
+    els.proposalModal.addEventListener("click", event => {
+      if (event.target === els.proposalModal) closeProposal();
+    });
+    els.inviteModal.addEventListener("click", event => {
+      if (event.target === els.inviteModal) closeInvite();
+    });
+    els.productModal.addEventListener("click", event => {
+      if (event.target === els.productModal) closeProductModal();
+    });
+    document.querySelector("#approvalsBtn")?.addEventListener("click", openApprovalsModal);
+    document.querySelector("#closeApprovalsBtn")?.addEventListener("click", closeApprovalsModal);
+    document.querySelector("#closeApprovalsBottomBtn")?.addEventListener("click", closeApprovalsModal);
+    document.querySelector("#refreshApprovalsBtn")?.addEventListener("click", renderApprovalRequests);
+    document.querySelector("#approvalsModal")?.addEventListener("click", event => {
+      if (event.target === document.querySelector("#approvalsModal")) closeApprovalsModal();
+    });
+    document.querySelector("#approvalsList")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-approval-action]");
+      if (!button) return;
+      const line = button.closest("[data-approval-uid]");
+      resolveApproval(line?.dataset.approvalUid, button.dataset.approvalAction === "approve");
+    });
+    window.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeProposal();
+        closeInvite();
+        closeProductModal();
+        closeApprovalsModal();
+      }
+    });
+
+    ensureJitsiOpenButton();
+    initializeFromUrl();
+    els.roomCodeLabel.textContent = state.roomCode;
+    renderCatalog();
+    renderOrder();
+    renderProductAdminList();
+    showcaseProduct(products[0]);
+  </script>
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyBan0uoa0EQlxH7lAf0WfVVCPRbArk_igs",
+      authDomain: "portal-f422a.firebaseapp.com",
+      projectId: "portal-f422a",
+      storageBucket: "portal-f422a.firebasestorage.app",
+      messagingSenderId: "479661755295",
+      appId: "1:479661755295:web:15e4f2e340db72a2b5cbaa",
+      // IMPORTANTE: crie o Realtime Database usando este endereço.
+      // Se o Firebase mostrar outra URL, substitua a linha abaixo pela URL exata do banco.
+      databaseURL: "https://portal-f422a-default-rtdb.firebaseio.com"
+    };
+
+    function safeKey(part) {
+      return String(part ?? "")
+        .trim()
+        .replace(/[.#$/[\]]/g, "_")
+        .replace(/^\/+|\/+$/g, "") || "_";
+    }
+
+    function cleanForRealtime(value) {
+      if (value === undefined) return null;
+      if (value === null) return null;
+      if (Array.isArray(value)) return value.map(cleanForRealtime);
+      if (typeof value === "object") {
+        const out = {};
+        Object.entries(value).forEach(([key, val]) => {
+          if (val !== undefined) out[key] = cleanForRealtime(val);
+        });
+        return out;
+      }
+      return value;
+    }
+
+    function snapshotAdapter(path, snapshot, type = "doc", seen = null) {
+      const value = snapshot.val();
+      const id = path.split("/").filter(Boolean).pop() || "";
+
+      if (type === "collection") {
+        const rows = value && typeof value === "object" && !Array.isArray(value)
+          ? Object.entries(value)
+          : [];
+
+        const docs = rows.map(([docId, docData]) => ({
+          id: docId,
+          data: () => docData || {}
+        }));
+
+        const changes = rows
+          .filter(([docId]) => !seen || !seen.has(docId))
+          .map(([docId, docData]) => {
+            if (seen) seen.add(docId);
+            return {
+              type: "added",
+              doc: {
+                id: docId,
+                data: () => docData || {}
+              }
+            };
+          });
+
+        return {
+          docs,
+          empty: docs.length === 0,
+          docChanges: () => changes
+        };
+      }
+
+      return {
+        id,
+        exists: () => snapshot.exists(),
+        data: () => value || {}
+      };
+    }
+
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+      const {
+        getDatabase,
+        ref,
+        get,
+        set,
+        update,
+        push,
+        onValue,
+        serverTimestamp
+      } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
+      const {
+        getAuth,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        GoogleAuthProvider,
+        signInWithPopup,
+        updateProfile,
+        signOut,
+        onAuthStateChanged
+      } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const auth = getAuth(app);
+
+      const doc = (_db, ...segments) => ({
+        kind: "doc",
+        path: segments.map(safeKey).join("/")
+      });
+
+      const collection = (_db, ...segments) => ({
+        kind: "collection",
+        path: segments.map(safeKey).join("/")
+      });
+
+      const setDoc = async (docRef, data, options = {}) => {
+        const dbRef = ref(db, docRef.path);
+        const clean = cleanForRealtime(data);
+        if (options?.merge) {
+          await update(dbRef, clean);
+        } else {
+          await set(dbRef, clean);
+        }
+      };
+
+      const getDoc = async docRef => {
+        const snapshot = await get(ref(db, docRef.path));
+        return snapshotAdapter(docRef.path, snapshot, "doc");
+      };
+
+      const getDocs = async collectionRef => {
+        const snapshot = await get(ref(db, collectionRef.path));
+        return snapshotAdapter(collectionRef.path, snapshot, "collection");
+      };
+
+      const addDoc = async (collectionRef, data) => {
+        const itemRef = push(ref(db, collectionRef.path));
+        await set(itemRef, cleanForRealtime(data));
+        return { id: itemRef.key, path: `${collectionRef.path}/${itemRef.key}` };
+      };
+
+      const onSnapshot = (refObject, callback, errorCallback) => {
+        const seen = refObject.kind === "collection" ? new Set() : null;
+        return onValue(
+          ref(db, refObject.path),
+          snapshot => callback(snapshotAdapter(refObject.path, snapshot, refObject.kind, seen)),
+          error => {
+            console.warn("Realtime Database listener failed", error);
+            if (typeof errorCallback === "function") errorCallback(error);
+          }
+        );
+      };
+
+      console.info("Firebase Realtime Database conectado ao projeto:", firebaseConfig.projectId);
+      window.setFirebaseStatus?.(
+        `Realtime Database conectado ao projeto ${firebaseConfig.projectId}. URL: ${firebaseConfig.databaseURL}`,
+        "ok"
+      );
+
+      window.firebasePortal = {
+        app,
+        db,
+        auth,
+        doc,
+        getDoc,
+        getDocs,
+        collection,
+        addDoc,
+        setDoc,
+        onSnapshot,
+        serverTimestamp,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        GoogleAuthProvider,
+        signInWithPopup,
+        updateProfile,
+        signOut,
+        onAuthStateChanged
+      };
+
+      window.dispatchEvent(new CustomEvent("firebase-ready", {
+        detail: window.firebasePortal
+      }));
+    } catch (error) {
+      window.setFirebaseStatus?.(`Erro ao carregar Firebase Realtime Database: ${error?.message || error}`, "danger");
+      window.dispatchEvent(new CustomEvent("firebase-error", {
+        detail: error
+      }));
+    }
+  </script>
+</body>
+</html>
