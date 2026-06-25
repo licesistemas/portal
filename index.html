@@ -3766,20 +3766,20 @@
       });
     }
 
-    function queuePresentationSave(productId) {
+    async function queuePresentationSave(productId) {
       if (!productId || typeof window.portalSavePresentation !== "function") return;
       window.clearTimeout(presentationSaveTimer);
-      presentationSaveTimer = window.setTimeout(() => {
-        window.portalSavePresentation({
+      try {
+        await window.portalSavePresentation({
           roomCode: state.roomCode,
           featuredProductId: productId,
           operatorUid: state.firebaseUser?.uid || null,
           operatorEmail: state.firebaseUser?.email || null,
           updatedAtClient: new Date().toISOString()
-        }).catch(error => {
-          console.warn("Presentation save failed", error);
         });
-      }, 250);
+      } catch (error) {
+        console.warn("Presentation save failed", error);
+      }
     }
 
     function showcaseProduct(product, options = {}) {
