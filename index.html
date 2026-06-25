@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sala Virtual Têxtil Pro</title>
+  <title>Sala Virtual Têxtil Pro - Videochamada Própria</title>
   <style>
     :root {
       --bg: #f4f6f3;
@@ -2266,76 +2266,130 @@
 
 
 
-    /* Videochamada WebRTC nativa */
-    .remote-video,
-    .client-local-preview video {
+    /* Videochamada própria WebRTC */
+    .rtc-remote-video {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: none;
       background: #071512;
-      display: block;
+      z-index: 8;
     }
 
-    .remote-video {
+    .call-stage.rtc-active .rtc-remote-video,
+    .client-video-stage.rtc-active .client-operator-video {
+      display: block !important;
+    }
+
+    .call-stage.rtc-active .customer-video,
+    .call-stage.rtc-active .showcase-caption,
+    .call-stage.rtc-active .customer-avatar,
+    .client-video-stage.rtc-active .client-showcase-piece,
+    .client-video-stage.rtc-active .client-camera-placeholder {
+      display: none !important;
+    }
+
+    .call-stage.rtc-active,
+    .client-video-stage.rtc-active {
+      background: #071512;
+    }
+
+    .rtc-placeholder {
       position: absolute;
       inset: 0;
-      z-index: 1;
+      z-index: 9;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: rgba(255,255,255,.82);
+      text-align: center;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.12), transparent 32%), #071512;
+    }
+
+    .rtc-placeholder strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .call-stage.rtc-connected .rtc-placeholder,
+    .client-video-stage.rtc-connected .rtc-placeholder {
       display: none;
-    }
-
-    .call-stage.webrtc-active .remote-video {
-      display: block;
-    }
-
-    .call-stage.webrtc-active .customer-video,
-    .call-stage.webrtc-active .showcase-caption {
-      display: none !important;
-    }
-
-    .call-stage.webrtc-active .operator-preview {
-      z-index: 4;
-    }
-
-    .client-video-stage.webrtc-active .client-operator-video,
-    .client-video-stage.camera-active .client-operator-video {
-      display: block;
-    }
-
-    .client-video-stage.webrtc-active .client-showcase-piece,
-    .client-video-stage.webrtc-active .client-camera-placeholder,
-    .client-video-stage.camera-active .client-showcase-piece,
-    .client-video-stage.camera-active .client-camera-placeholder {
-      display: none !important;
     }
 
     .client-local-preview {
       position: absolute;
       right: 16px;
-      bottom: 154px;
-      width: 144px;
-      height: 104px;
-      z-index: 8;
+      bottom: 108px;
+      width: 140px;
+      height: 96px;
+      z-index: 14;
       display: none;
-      overflow: hidden;
+      object-fit: cover;
       border-radius: var(--soft-radius);
-      border: 2px solid rgba(255,255,255,0.82);
-      background: #071512;
-      box-shadow: 0 14px 32px rgba(0,0,0,0.28);
+      border: 2px solid rgba(255,255,255,.82);
+      background: #10251f;
+      box-shadow: 0 14px 32px rgba(0,0,0,.26);
     }
 
-    .client-video-stage.webrtc-active .client-local-preview {
+    .client-video-stage.rtc-active .client-local-preview {
       display: block;
+    }
+
+    .client-video-controls {
+      display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .client-video-stage.rtc-active .client-video-controls {
+      display: flex;
+    }
+
+    .call-label,
+    .client-video-caption,
+    .client-live-footer,
+    .operator-preview {
+      z-index: 16;
+    }
+
+    .operator-preview.active video,
+    .operator-preview video[srcObject] {
+      display: block;
+    }
+
+    .call-stage.screen-active::after {
+      content: "Tela sendo compartilhada";
+      position: absolute;
+      left: 14px;
+      top: 52px;
+      z-index: 18;
+      color: #fff;
+      background: rgba(0,0,0,.42);
+      border: 1px solid rgba(255,255,255,.26);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
     }
 
     @media (max-width: 540px) {
       .client-local-preview {
-        width: 110px;
-        height: 82px;
-        right: 14px;
-        bottom: 148px;
+        width: 104px;
+        height: 76px;
+        bottom: 128px;
+      }
+      .client-video-controls {
+        width: 100%;
+      }
+      .client-video-controls .control-button {
+        flex: 1;
       }
     }
-
   </style>
 </head>
 <body>
@@ -2525,7 +2579,13 @@
         </div>
 
         <section class="call-stage" aria-label="Video chamada">
-          <video class="remote-video" id="operatorRemoteVideo" autoplay playsinline></video>
+          <video class="rtc-remote-video" id="remoteVideo" autoplay playsinline></video>
+          <div class="rtc-placeholder" id="rtcPlaceholder">
+            <div>
+              <strong>Videochamada própria</strong>
+              <span>Clique em Iniciar e aguarde o lojista entrar na sala.</span>
+            </div>
+          </div>
           <div class="customer-video">
             <div class="showcase-piece" id="showcasePiece"></div>
             <div class="customer-avatar" id="customerAvatar">AM</div>
@@ -2745,10 +2805,14 @@
           <span class="tag"><span class="status-dot"></span> Lojista conectado</span>
         </div>
 
-        <section class="client-video-stage" id="clientVideoStage" aria-label="Câmera do operador">
+        <section class="client-video-stage" id="clientVideoStage" aria-label="Videochamada do lojista">
           <video class="client-operator-video" id="clientOperatorVideo" autoplay playsinline></video>
-          <div class="client-local-preview" id="clientLocalPreview">
-            <video id="clientLocalVideo" muted autoplay playsinline></video>
+          <video class="client-local-preview" id="clientLocalVideo" muted autoplay playsinline></video>
+          <div class="rtc-placeholder" id="clientRtcPlaceholder">
+            <div>
+              <strong>Aguardando videochamada</strong>
+              <span>Quando o operador iniciar, clique em Entrar no vídeo.</span>
+            </div>
           </div>
           <div class="client-video-caption">
             <strong id="clientShowcaseName">Blazer Milano Alfaiataria</strong>
@@ -2758,16 +2822,31 @@
           <div class="client-camera-placeholder" id="clientCâmeraPlaceholder">
             <div>
               <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
-              <strong>Aguardando câmera do operador</strong>
+              <strong>Aguardando videochamada</strong>
             </div>
           </div>
           <div class="client-showcase-piece" id="clientShowcasePiece"></div>
           <div class="client-live-footer">
             <div>
               <strong id="clientBuyerName">Lojista</strong>
-              <span>acompanhando pedido e catálogo</span>
+              <span>em conversa de vídeo com o operador</span>
             </div>
-            <button class="primary-action" id="clientProposalBtn" type="button">
+            <button class="primary-action" id="clientJoinVideoBtn" type="button">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+              Entrar no vídeo
+            </button>
+            <div class="client-video-controls" id="clientVideoControls" aria-label="Controles de vídeo do lojista">
+              <button class="control-button active" id="clientMicBtn" type="button" title="Microfone do lojista" aria-label="Microfone do lojista">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg>
+              </button>
+              <button class="control-button active" id="clientCameraBtn" type="button" title="Câmera do lojista" aria-label="Câmera do lojista">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+              </button>
+              <button class="control-button" id="clientEndVideoBtn" type="button" title="Sair da chamada" aria-label="Sair da chamada">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18"></path><path d="M16 2l6 6"></path><path d="M22 2l-6 6"></path></svg>
+              </button>
+            </div>
+            <button class="secondary-action" id="clientProposalBtn" type="button">
               <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
               Ver proposta
             </button>
@@ -3163,8 +3242,8 @@
       rtcCallerCandidateUnsubscribe: null,
       joiningCall: false,
       rtcRole: null,
-      rtcRemoteDescriptionSet: false,
-      rtcCurrentScreenTrack: null,
+      localStreamRole: null,
+      autoJoinAttempted: false,
       role: null,
       userName: "Lojista",
       roomCode: "LIVE-4821",
@@ -3247,8 +3326,9 @@
       cameraBtn: document.querySelector("#cameraBtn"),
       screenBtn: document.querySelector("#screenBtn"),
       localVideo: document.querySelector("#localVideo"),
-      operatorRemoteVideo: document.querySelector("#operatorRemoteVideo"),
       operatorPreview: document.querySelector("#operatorPreview"),
+      remoteVideo: document.querySelector("#remoteVideo"),
+      rtcPlaceholder: document.querySelector("#rtcPlaceholder"),
       showcasePiece: document.querySelector("#showcasePiece"),
       showcaseName: document.querySelector("#showcaseName"),
       showcaseMeta: document.querySelector("#showcaseMeta"),
@@ -3262,9 +3342,13 @@
       clientSessionStatus: document.querySelector("#clientSessionStatus"),
       clientRoomCodeLabel: document.querySelector("#clientRoomCodeLabel"),
       clientVideoStage: document.querySelector("#clientVideoStage"),
-      clientOperatorVideo: document.querySelector("#clientOperatorVideo"),
       clientLocalVideo: document.querySelector("#clientLocalVideo"),
-      clientLocalPreview: document.querySelector("#clientLocalPreview"),
+      clientRtcPlaceholder: document.querySelector("#clientRtcPlaceholder"),
+      clientVideoControls: document.querySelector("#clientVideoControls"),
+      clientMicBtn: document.querySelector("#clientMicBtn"),
+      clientCameraBtn: document.querySelector("#clientCameraBtn"),
+      clientEndVideoBtn: document.querySelector("#clientEndVideoBtn"),
+      clientOperatorVideo: document.querySelector("#clientOperatorVideo"),
       clientCâmeraPlaceholder: document.querySelector("#clientCâmeraPlaceholder"),
       clientShowcasePiece: document.querySelector("#clientShowcasePiece"),
       clientShowcaseName: document.querySelector("#clientShowcaseName"),
@@ -3281,6 +3365,7 @@
       clientOrderList: document.querySelector("#clientOrderList"),
       clientGradeSummary: document.querySelector("#clientGradeSummary"),
       clientProposalBtn: document.querySelector("#clientProposalBtn"),
+      clientJoinVideoBtn: document.querySelector("#clientJoinVideoBtn"),
       inviteModal: document.querySelector("#inviteModal"),
       inviteCode: document.querySelector("#inviteCode"),
       invitePassword: document.querySelector("#invitePassword"),
@@ -3980,70 +4065,148 @@
 
     function callDocRef() {
       const firebase = window.firebasePortal;
-      return firebase?.doc(firebase.db, "calls", state.roomCode);
+      if (!firebase?.db) throw new Error("Realtime Database ainda não carregou");
+      return firebase.doc(firebase.db, "calls", state.roomCode);
     }
 
-    function callCollectionRef(name) {
+    function candidateCollection(name) {
       const firebase = window.firebasePortal;
-      return firebase?.collection(firebase.db, "calls", state.roomCode, name);
+      if (!firebase?.db) throw new Error("Realtime Database ainda não carregou");
+      return firebase.collection(firebase.db, "calls", state.roomCode, name);
     }
 
-    function candidateToJSON(candidate) {
-      if (!candidate) return null;
-      return typeof candidate.toJSON === "function" ? candidate.toJSON() : {
-        candidate: candidate.candidate,
-        sdpMid: candidate.sdpMid,
-        sdpMLineIndex: candidate.sdpMLineIndex,
-        usernameFragment: candidate.usernameFragment || null
-      };
+    function safeRtcDescription(description) {
+      return description ? { type: description.type, sdp: description.sdp } : null;
     }
 
-    async function getLocalMedia() {
-      if (state.cameraStream) return state.cameraStream;
-      if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("Seu navegador não liberou câmera/microfone. Use Chrome, Edge ou Safari em HTTPS.");
+    function setVideoStream(video, stream) {
+      if (!video) return;
+      video.srcObject = stream || null;
+      if (stream) {
+        video.play?.().catch(() => {});
+      } else {
+        video.pause?.();
       }
-      state.cameraStream = await navigator.mediaDevices.getUserMedia({
+    }
+
+    function markRtcActive(role, connected = false) {
+      const operatorStage = document.querySelector(".call-stage");
+      const clientStage = els.clientVideoStage;
+      if (role === "operator") {
+        operatorStage?.classList.add("rtc-active");
+        operatorStage?.classList.toggle("rtc-connected", connected);
+      }
+      if (role === "client") {
+        clientStage?.classList.add("rtc-active", "camera-active");
+        clientStage?.classList.toggle("rtc-connected", connected);
+      }
+    }
+
+    function markRtcInactive(role = null) {
+      if (!role || role === "operator") {
+        document.querySelector(".call-stage")?.classList.remove("rtc-active", "rtc-connected", "screen-active");
+      }
+      if (!role || role === "client") {
+        els.clientVideoStage?.classList.remove("rtc-active", "rtc-connected", "camera-active", "screen-active");
+      }
+    }
+
+    async function getLocalMedia(role) {
+      if (state.cameraStream && state.localStreamRole === role) return state.cameraStream;
+
+      stopLocalTracks(false);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Este navegador não liberou câmera e microfone");
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
         audio: true
       });
-      attachLocalStream();
-      return state.cameraStream;
-    }
 
-    function attachLocalStream() {
-      if (els.localVideo && state.cameraStream) {
-        els.localVideo.srcObject = state.cameraStream;
+      state.cameraStream = stream;
+      state.localStreamRole = role;
+
+      if (role === "operator") {
+        setVideoStream(els.localVideo, stream);
         els.operatorPreview?.classList.add("active");
+      } else {
+        setVideoStream(els.clientLocalVideo, stream);
+        els.clientVideoStage?.classList.add("rtc-active", "camera-active");
       }
-      if (els.clientLocalVideo && state.cameraStream) {
-        els.clientLocalVideo.srcObject = state.cameraStream;
+
+      return stream;
+    }
+
+    function stopLocalTracks(clearVideo = true) {
+      if (state.cameraStream) {
+        state.cameraStream.getTracks().forEach(track => track.stop());
+      }
+      if (state.screenStream) {
+        state.screenStream.getTracks().forEach(track => track.stop());
+      }
+      state.cameraStream = null;
+      state.screenStream = null;
+      state.localStreamRole = null;
+      if (clearVideo) {
+        setVideoStream(els.localVideo, null);
+        setVideoStream(els.clientLocalVideo, null);
+        els.operatorPreview?.classList.remove("active");
       }
     }
 
-    function attachRemoteStream() {
-      const target = state.rtcRole === "client" ? els.clientOperatorVideo : els.operatorRemoteVideo;
-      if (target && state.remoteStream) {
-        target.srcObject = state.remoteStream;
-        target.play?.().catch(() => {});
-      }
-      if (state.rtcRole === "operator") {
-        document.querySelector(".call-stage")?.classList.add("webrtc-active", "camera-active");
-      }
-      if (state.rtcRole === "client") {
-        els.clientVideoStage?.classList.add("webrtc-active", "camera-active");
-      }
+    function stopRtcListeners() {
+      ["rtcAnswerUnsubscribe", "rtcCandidateUnsubscribe", "rtcCallUnsubscribe", "rtcCallerCandidateUnsubscribe"].forEach(key => {
+        if (typeof state[key] === "function") {
+          try { state[key](); } catch (error) { console.warn("Erro ao remover listener RTC", error); }
+        }
+        state[key] = null;
+      });
     }
 
-    function createPeerConnection(candidateCollectionName) {
+    function closePeerConnection() {
+      if (state.peerConnection) {
+        try {
+          state.peerConnection.ontrack = null;
+          state.peerConnection.onicecandidate = null;
+          state.peerConnection.onconnectionstatechange = null;
+          state.peerConnection.close();
+        } catch (error) {
+          console.warn("Erro ao fechar WebRTC", error);
+        }
+      }
+      state.peerConnection = null;
+      state.remoteStream = null;
+      setVideoStream(els.remoteVideo, null);
+      setVideoStream(els.clientOperatorVideo, null);
+    }
+
+    function resetRtcSession({ stopTracks = true, stopListeners = true, role = null } = {}) {
+      if (stopListeners) stopRtcListeners();
+      closePeerConnection();
+      if (stopTracks) stopLocalTracks(true);
+      markRtcInactive(role);
+      state.rtcRole = null;
+      state.joiningCall = false;
+      els.screenBtn?.classList.remove("active");
+      els.cameraBtn?.classList.remove("active");
+      els.micBtn?.classList.remove("active");
+      els.clientMicBtn?.classList.remove("active");
+      els.clientCameraBtn?.classList.remove("active");
+    }
+
+    function createPeerConnection(role) {
       const firebase = window.firebasePortal;
-      if (!firebase?.db) throw new Error("Realtime Database ainda não conectou");
+      if (!firebase?.db) throw new Error("Realtime Database não conectado");
 
       const pc = new RTCPeerConnection(rtcConfig);
       state.peerConnection = pc;
       state.remoteStream = new MediaStream();
-      state.rtcRemoteDescriptionSet = false;
-      attachRemoteStream();
+      state.rtcRole = role;
+
+      const remoteVideo = role === "operator" ? els.remoteVideo : els.clientOperatorVideo;
+      setVideoStream(remoteVideo, state.remoteStream);
+      markRtcActive(role, false);
 
       pc.ontrack = event => {
         event.streams?.[0]?.getTracks()?.forEach(track => {
@@ -4051,206 +4214,219 @@
             state.remoteStream.addTrack(track);
           }
         });
-        attachRemoteStream();
-        setRtcStatus("Vídeo conectado");
+        setVideoStream(remoteVideo, state.remoteStream);
+        markRtcActive(role, true);
+        setRtcStatus(role === "operator" ? "Lojista conectado" : "Operador conectado");
       };
 
-      pc.onicecandidate = async event => {
+      pc.onicecandidate = event => {
         if (!event.candidate) return;
-        try {
-          await firebase.addDoc(callCollectionRef(candidateCollectionName), candidateToJSON(event.candidate));
-        } catch (error) {
-          console.warn("Falha ao salvar ICE candidate", error);
-          showToast("Falha ao sinalizar conexão");
-        }
+        const target = role === "operator" ? "callerCandidates" : "calleeCandidates";
+        firebase.addDoc(candidateCollection(target), event.candidate.toJSON()).catch(error => {
+          console.warn("Erro ao salvar candidato ICE", error);
+        });
       };
 
       pc.onconnectionstatechange = () => {
         const status = pc.connectionState;
-        if (status === "connected") setRtcStatus("Chamada conectada");
-        if (status === "connecting") setRtcStatus("Conectando vídeo...");
-        if (status === "failed") setRtcStatus("Falha na conexão de vídeo");
-        if (status === "disconnected") setRtcStatus("Vídeo desconectado");
-        if (status === "closed") setRtcStatus("Chamada encerrada");
+        if (status === "connected") {
+          markRtcActive(role, true);
+          setRtcStatus("Vídeo conectado");
+        }
+        if (["failed", "disconnected"].includes(status)) {
+          setRtcStatus(status === "failed" ? "Falha na conexão de vídeo" : "Vídeo desconectado");
+        }
       };
 
       return pc;
     }
 
-    async function addLocalTracks(pc) {
-      const stream = await getLocalMedia();
-      stream.getTracks().forEach(track => pc.addTrack(track, stream));
-      els.cameraBtn?.classList.toggle("active", stream.getVideoTracks().some(track => track.enabled));
-      els.micBtn?.classList.toggle("active", stream.getAudioTracks().some(track => track.enabled));
+    async function addRemoteCandidate(candidateData) {
+      if (!candidateData || !state.peerConnection) return;
+      try {
+        await state.peerConnection.addIceCandidate(new RTCIceCandidate(candidateData));
+      } catch (error) {
+        console.warn("Erro ao adicionar candidato ICE", error);
+      }
     }
 
-    async function clearRtcSignalData() {
+    function listenForCandidates(collectionName) {
       const firebase = window.firebasePortal;
-      if (!firebase?.db) return;
-      await Promise.all([
-        firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode, "callerCandidates"), {}),
-        firebase.setDoc(firebase.doc(firebase.db, "calls", state.roomCode, "calleeCandidates"), {})
-      ]).catch(error => console.warn("Não foi possível limpar candidatos antigos", error));
+      const key = collectionName === "callerCandidates" ? "rtcCallerCandidateUnsubscribe" : "rtcCandidateUnsubscribe";
+      if (state[key]) return;
+      state[key] = firebase.onSnapshot(candidateCollection(collectionName), snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added") addRemoteCandidate(change.doc.data());
+        });
+      }, error => console.warn("Erro nos candidatos WebRTC", error));
     }
 
-    async function publishRtcStatus(extra = {}) {
+    function listenForOperatorAnswer() {
+      const firebase = window.firebasePortal;
+      if (state.rtcAnswerUnsubscribe) return;
+      state.rtcAnswerUnsubscribe = firebase.onSnapshot(callDocRef(), async snapshot => {
+        const data = snapshot.data();
+        if (data?.status === "encerrada") {
+          resetRtcSession({ stopTracks: true, stopListeners: true, role: "operator" });
+          setRtcStatus("Chamada encerrada");
+          return;
+        }
+        if (!data?.answer || !state.peerConnection) return;
+        if (state.peerConnection.currentRemoteDescription) return;
+        try {
+          await state.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          setRtcStatus("Conectando vídeo");
+        } catch (error) {
+          console.warn("Erro ao aplicar resposta WebRTC", error);
+          setRtcStatus("Erro na resposta do vídeo");
+        }
+      }, error => console.warn("Erro ao ouvir resposta WebRTC", error));
+    }
+
+    function listenWebRtcCallStatus() {
+      const firebase = window.firebasePortal;
+      if (!firebase?.db || state.rtcCallUnsubscribe) return;
+      state.rtcCallUnsubscribe = firebase.onSnapshot(callDocRef(), snapshot => {
+        const data = snapshot.data();
+        if (data?.provider === "webrtc" && data?.status === "ao_vivo" && data?.offer) {
+          setRtcStatus("Chamada disponível");
+          if (els.clientSessionStatus) els.clientSessionStatus.textContent = "Chamada disponível";
+          if (els.clientJoinVideoBtn) els.clientJoinVideoBtn.disabled = false;
+          if (state.role === "client" && !state.autoJoinAttempted && !state.peerConnection) {
+            state.autoJoinAttempted = true;
+            window.setTimeout(() => {
+              joinWebRtcAsClient(false).catch(error => {
+                console.warn("Entrada automática bloqueada", error);
+                showToast("Clique em Entrar no vídeo para liberar câmera e microfone");
+              });
+            }, 700);
+          }
+        }
+        if (data?.status === "encerrada") {
+          resetRtcSession({ stopTracks: true, stopListeners: false, role: "client" });
+          state.autoJoinAttempted = false;
+          setRtcStatus("Chamada encerrada");
+          if (els.clientSessionStatus) els.clientSessionStatus.textContent = "Chamada encerrada";
+        }
+      }, error => console.warn("Erro ao ouvir chamada WebRTC", error));
+    }
+
+    async function publishCallStatus(status, extra = {}) {
       const firebase = window.firebasePortal;
       if (!firebase?.db) return;
       await firebase.setDoc(callDocRef(), {
         roomCode: state.roomCode,
         provider: "webrtc",
+        status,
         updatedAt: firebase.serverTimestamp(),
         ...extra
-      }, { merge: true });
-    }
-
-    function listenRemoteCandidates(collectionName) {
-      const firebase = window.firebasePortal;
-      if (!firebase?.db || !state.peerConnection) return null;
-      return firebase.onSnapshot(callCollectionRef(collectionName), snapshot => {
-        snapshot.docChanges().forEach(change => {
-          if (change.type !== "added") return;
-          const data = change.doc.data();
-          if (!data?.candidate) return;
-          state.peerConnection.addIceCandidate(new RTCIceCandidate(data)).catch(error => {
-            console.warn("Falha ao adicionar ICE candidate", error);
-          });
-        });
-      }, error => console.warn("Falha ao ouvir ICE candidates", error));
-    }
-
-    function listenForAnswer() {
-      const firebase = window.firebasePortal;
-      if (!firebase?.db || state.rtcAnswerUnsubscribe) return;
-      state.rtcAnswerUnsubscribe = firebase.onSnapshot(callDocRef(), async snapshot => {
-        const data = snapshot.data();
-        if (data?.status === "encerrada") {
-          cleanupRtc(false);
-          return;
-        }
-        if (!data?.answer || !state.peerConnection || state.rtcRemoteDescriptionSet) return;
-        try {
-          await state.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-          state.rtcRemoteDescriptionSet = true;
-          setRtcStatus("Cliente conectado");
-        } catch (error) {
-          console.warn("Falha ao aplicar answer", error);
-          setRtcStatus("Erro ao conectar cliente");
-        }
-      }, error => console.warn("Falha ao ouvir answer", error));
-    }
-
-    async function startWebRtcAsOperator() {
-      if (!window.RTCPeerConnection) throw new Error("Este navegador não suporta WebRTC");
-      const firebase = window.firebasePortal;
-      if (!firebase?.db) throw new Error("Realtime Database ainda não conectou");
-
-      state.rtcRole = "operator";
-      await cleanupRtc(false);
-      state.rtcRole = "operator";
-      await clearRtcSignalData();
-
-      const pc = createPeerConnection("callerCandidates");
-      await addLocalTracks(pc);
-
-      state.rtcCandidateUnsubscribe = listenRemoteCandidates("calleeCandidates");
-      listenForAnswer();
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await publishRtcStatus({
-        status: "aguardando_cliente",
-        offer: { type: offer.type, sdp: offer.sdp },
-        answer: null,
-        operatorUid: state.firebaseUser?.uid || null,
-        operatorEmail: state.firebaseUser?.email || null
-      });
-
-      document.querySelector(".call-stage")?.classList.add("webrtc-active", "camera-active");
-      setRtcStatus("Aguardando cliente");
-    }
-
-    async function joinWebRtcAsClient(callData) {
-      if (state.joiningCall || state.peerConnection || !callData?.offer) return;
-      if (!window.RTCPeerConnection) {
-        setRtcStatus("Navegador sem WebRTC");
-        return;
-      }
-      const firebase = window.firebasePortal;
-      if (!firebase?.db) return;
-
-      state.joiningCall = true;
-      state.rtcRole = "client";
-      try {
-        const pc = createPeerConnection("calleeCandidates");
-        await addLocalTracks(pc);
-        state.rtcCallerCandidateUnsubscribe = listenRemoteCandidates("callerCandidates");
-
-        await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        await publishRtcStatus({
-          status: "ao_vivo",
-          answer: { type: answer.type, sdp: answer.sdp },
-          clientUid: state.firebaseUser?.uid || null,
-          clientEmail: state.firebaseUser?.email || null
-        });
-
-        els.clientVideoStage?.classList.add("webrtc-active", "camera-active");
-        setRtcStatus("Conectando vídeo...");
-      } catch (error) {
-        console.warn("Falha ao entrar na chamada WebRTC", error);
-        setRtcStatus("Não foi possível entrar na chamada");
-        showToast(error?.message || "Falha na videochamada");
-        cleanupRtc(false);
-      } finally {
-        state.joiningCall = false;
-      }
-    }
-
-    function listenWebRtcCallStatus() {
-      const firebase = window.firebasePortal;
-      if (state.role !== "client" || !firebase?.db || state.rtcCallUnsubscribe) return;
-      state.rtcCallUnsubscribe = firebase.onSnapshot(callDocRef(), snapshot => {
-        const data = snapshot.data();
-        if (data?.provider === "webrtc" && data?.status !== "encerrada" && data?.offer) {
-          joinWebRtcAsClient(data);
-        }
-        if (data?.status === "encerrada") {
-          cleanupRtc(false);
-          setRtcStatus("Chamada encerrada");
-        }
-      }, error => {
-        console.warn("Falha ao ouvir status da chamada", error);
-        setRtcStatus("Erro ao ouvir chamada");
-      });
+      }, { merge: status !== "ao_vivo_inicial" });
     }
 
     async function startCall() {
       if (!state.callStartedAt) {
         state.callStartedAt = Date.now();
-        els.sessionStatus.textContent = "Videochamada em andamento";
+        els.sessionStatus.textContent = "Chamada própria em andamento";
         state.timerId = window.setInterval(updateTimer, 1000);
         updateTimer();
       }
 
       try {
-        await startWebRtcAsOperator();
-        showToast("Videochamada iniciada");
+        resetRtcSession({ stopTracks: true, stopListeners: true, role: "operator" });
+        const firebase = window.firebasePortal;
+        const localStream = await getLocalMedia("operator");
+        els.cameraBtn?.classList.add("active");
+        els.micBtn?.classList.add("active");
+
+        const pc = createPeerConnection("operator");
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+        await pc.setLocalDescription(offer);
+
+        await firebase.setDoc(callDocRef(), {
+          roomCode: state.roomCode,
+          provider: "webrtc",
+          status: "ao_vivo",
+          offer: safeRtcDescription(offer),
+          answer: null,
+          operatorUid: state.firebaseUser?.uid || null,
+          operatorEmail: state.firebaseUser?.email || null,
+          startedAt: firebase.serverTimestamp(),
+          updatedAt: firebase.serverTimestamp(),
+          callerCandidates: null,
+          calleeCandidates: null
+        });
+
+        listenForOperatorAnswer();
+        listenForCandidates("calleeCandidates");
+        markRtcActive("operator", false);
+        setRtcStatus("Aguardando lojista");
+        showToast("Videochamada própria iniciada");
       } catch (error) {
         console.warn("WebRTC start failed", error);
-        setRtcStatus("Erro na videochamada");
+        setRtcStatus("Erro no vídeo");
         showToast(error?.message || "Não foi possível iniciar a videochamada");
+      }
+    }
+
+    async function joinWebRtcAsClient(force = false) {
+      if (state.joiningCall) return;
+      if (state.peerConnection && !force) return;
+      state.joiningCall = true;
+
+      try {
+        if (force) resetRtcSession({ stopTracks: true, stopListeners: true, role: "client" });
+        const firebase = window.firebasePortal;
+        const callSnap = await firebase.getDoc(callDocRef());
+        const callData = callSnap.data();
+        if (!callSnap.exists() || callData?.provider !== "webrtc" || callData?.status !== "ao_vivo" || !callData?.offer) {
+          throw new Error("A chamada ainda não foi iniciada pelo operador");
+        }
+
+        const localStream = await getLocalMedia("client");
+        els.clientMicBtn?.classList.add("active");
+        els.clientCameraBtn?.classList.add("active");
+
+        const pc = createPeerConnection("client");
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        await firebase.setDoc(callDocRef(), {
+          answer: safeRtcDescription(answer),
+          status: "ao_vivo",
+          clientUid: state.firebaseUser?.uid || null,
+          clientEmail: state.firebaseUser?.email || null,
+          clientName: state.userName || "Lojista",
+          joinedAt: firebase.serverTimestamp(),
+          updatedAt: firebase.serverTimestamp()
+        }, { merge: true });
+
+        listenForCandidates("callerCandidates");
+        listenWebRtcCallStatus();
+        markRtcActive("client", false);
+        setRtcStatus("Conectando ao operador");
+        if (els.clientSessionStatus) els.clientSessionStatus.textContent = "Conectando vídeo";
+        showToast("Entrando na videochamada");
+      } catch (error) {
+        console.warn("WebRTC client join failed", error);
+        setRtcStatus("Erro no vídeo do lojista");
+        showToast(error?.message || "Não foi possível entrar no vídeo");
+      } finally {
+        state.joiningCall = false;
       }
     }
 
     async function startScreenShare() {
       if (!state.peerConnection || state.rtcRole !== "operator") {
-        showToast("Inicie a videochamada primeiro");
+        showToast("Inicie a chamada primeiro");
         return;
       }
       if (!navigator.mediaDevices?.getDisplayMedia) {
-        showToast("Compartilhamento não suportado neste navegador");
+        showToast("Compartilhamento de tela não suportado neste navegador");
         return;
       }
       try {
@@ -4258,12 +4434,12 @@
         const screenTrack = state.screenStream.getVideoTracks()[0];
         const sender = state.peerConnection.getSenders().find(item => item.track?.kind === "video");
         if (sender && screenTrack) {
-          state.rtcCurrentScreenTrack = screenTrack;
           await sender.replaceTrack(screenTrack);
+          setVideoStream(els.localVideo, state.screenStream);
           els.screenBtn?.classList.add("active");
           document.querySelector(".call-stage")?.classList.add("screen-active");
-          setRtcStatus("Compartilhando tela");
-          screenTrack.onended = () => stopScreenShare();
+          showToast("Compartilhando tela");
+          screenTrack.onended = stopScreenShare;
         }
       } catch (error) {
         console.warn("Screen share failed", error);
@@ -4272,29 +4448,22 @@
     }
 
     async function stopScreenShare() {
-      const screenTrack = state.rtcCurrentScreenTrack;
-      state.rtcCurrentScreenTrack = null;
-      if (screenTrack) {
-        screenTrack.onended = null;
-        screenTrack.stop?.();
-      }
-      state.screenStream?.getTracks()?.forEach(track => {
-        if (track !== screenTrack) track.stop?.();
-      });
-      state.screenStream = null;
-
+      if (!state.screenStream) return;
       const cameraTrack = state.cameraStream?.getVideoTracks()?.[0];
-      const sender = state.peerConnection?.getSenders?.().find(item => item.track?.kind === "video");
+      const sender = state.peerConnection?.getSenders().find(item => item.track?.kind === "video");
       if (sender && cameraTrack) {
-        await sender.replaceTrack(cameraTrack).catch(error => console.warn("Falha ao voltar câmera", error));
+        await sender.replaceTrack(cameraTrack).catch(error => console.warn("Erro ao voltar câmera", error));
       }
+      state.screenStream.getTracks().forEach(track => track.stop());
+      state.screenStream = null;
+      setVideoStream(els.localVideo, state.cameraStream);
       els.screenBtn?.classList.remove("active");
       document.querySelector(".call-stage")?.classList.remove("screen-active");
-      setRtcStatus("Videochamada em andamento");
+      showToast("Tela pausada");
     }
 
     function toggleScreenShare() {
-      if (els.screenBtn?.classList.contains("active")) {
+      if (state.screenStream) {
         stopScreenShare();
       } else {
         startScreenShare();
@@ -4302,58 +4471,25 @@
     }
 
     async function endCall() {
-      if (state.rtcRole === "operator" || state.role === "operator") {
-        await publishRtcStatus({ status: "encerrada" }).catch(error => console.warn("Falha ao encerrar chamada no banco", error));
+      if (state.timerId) {
+        window.clearInterval(state.timerId);
       }
-      cleanupRtc(true);
-      showToast("Videochamada encerrada");
-    }
-
-    function cleanupRtc(resetStatus = true) {
-      if (state.timerId) window.clearInterval(state.timerId);
       state.timerId = null;
       state.callStartedAt = null;
       if (els.sessionStatus) els.sessionStatus.textContent = "Sessão pronta";
       if (els.sessionTime) els.sessionTime.textContent = "00:00";
 
-      const unsubscribeKeys = [
-        "rtcAnswerUnsubscribe",
-        "rtcCandidateUnsubscribe",
-        "rtcCallerCandidateUnsubscribe"
-      ];
-      if (resetStatus) unsubscribeKeys.push("rtcCallUnsubscribe");
-      unsubscribeKeys.forEach(key => {
-        if (typeof state[key] === "function") {
-          try { state[key](); } catch (error) { console.warn("Falha ao remover listener", key, error); }
-        }
-        state[key] = null;
-      });
+      const isOperator = state.role === "operator" || !els.app?.classList.contains("is-locked");
+      if (isOperator) {
+        await publishCallStatus("encerrada", {
+          endedAt: window.firebasePortal?.serverTimestamp?.() || Date.now()
+        }).catch(error => console.warn("End WebRTC save failed", error));
+      }
 
-      state.peerConnection?.getSenders?.().forEach(sender => sender.track?.stop?.());
-      try { state.peerConnection?.close?.(); } catch (error) { console.warn("Falha ao fechar peer", error); }
-      state.peerConnection = null;
-      state.remoteStream?.getTracks?.().forEach(track => track.stop());
-      state.remoteStream = null;
-      state.cameraStream?.getTracks?.().forEach(track => track.stop());
-      state.cameraStream = null;
-      state.screenStream?.getTracks?.().forEach(track => track.stop());
-      state.screenStream = null;
-      state.rtcCurrentScreenTrack = null;
-      state.rtcRemoteDescriptionSet = false;
-      state.joiningCall = false;
-
-      if (els.localVideo) els.localVideo.srcObject = null;
-      if (els.operatorRemoteVideo) els.operatorRemoteVideo.srcObject = null;
-      if (els.clientOperatorVideo) els.clientOperatorVideo.srcObject = null;
-      if (els.clientLocalVideo) els.clientLocalVideo.srcObject = null;
-      els.operatorPreview?.classList.remove("active");
-      document.querySelector(".call-stage")?.classList.remove("webrtc-active", "camera-active", "screen-active");
-      els.clientVideoStage?.classList.remove("webrtc-active", "camera-active", "screen-active");
-      els.cameraBtn?.classList.remove("active");
-      els.micBtn?.classList.remove("active");
-      els.screenBtn?.classList.remove("active");
-
-      if (resetStatus) setRtcStatus("Pronta");
+      resetRtcSession({ stopTracks: true, stopListeners: true });
+      state.autoJoinAttempted = false;
+      setRtcStatus("Pronta");
+      showToast(isOperator ? "Chamada encerrada" : "Você saiu da chamada");
     }
 
     function updateTimer() {
@@ -4364,38 +4500,37 @@
       els.sessionTime.textContent = `${minutes}:${seconds}`;
     }
 
+    function toggleTrack(kind, button) {
+      const tracks = kind === "audio" ? state.cameraStream?.getAudioTracks() : state.cameraStream?.getVideoTracks();
+      if (!tracks?.length) {
+        showToast("Entre na chamada primeiro");
+        return;
+      }
+      const nextState = !tracks.every(track => track.enabled);
+      tracks.forEach(track => { track.enabled = nextState; });
+      button?.classList.toggle("active", nextState);
+      showToast(nextState ? (kind === "audio" ? "Microfone ligado" : "Câmera ligada") : (kind === "audio" ? "Microfone desligado" : "Câmera desligada"));
+    }
+
     function toggleControl(button) {
-      if (button === els.cameraBtn) {
-        const videoTracks = state.cameraStream?.getVideoTracks?.() || [];
-        if (!videoTracks.length) {
-          showToast("Inicie a videochamada primeiro");
-          return;
-        }
-        const active = !videoTracks.every(track => track.enabled);
-        videoTracks.forEach(track => { track.enabled = active; });
-        button.classList.toggle("active", active);
-        return;
-      }
-      if (button === els.micBtn) {
-        const audioTracks = state.cameraStream?.getAudioTracks?.() || [];
-        if (!audioTracks.length) {
-          showToast("Inicie a videochamada primeiro");
-          return;
-        }
-        const active = !audioTracks.every(track => track.enabled);
-        audioTracks.forEach(track => { track.enabled = active; });
-        button.classList.toggle("active", active);
-        return;
-      }
-      button.classList.toggle("active");
+      if (button === els.micBtn) return toggleTrack("audio", button);
+      if (button === els.cameraBtn) return toggleTrack("video", button);
+      button?.classList.toggle("active");
+    }
+
+    function leaveClientCall() {
+      resetRtcSession({ stopTracks: true, stopListeners: false, role: "client" });
+      setRtcStatus("Você saiu do vídeo");
+      if (els.clientSessionStatus) els.clientSessionStatus.textContent = "Fora da chamada";
+      showToast("Você saiu da videochamada");
     }
 
     function syncClientCamera() {
-      if (state.peerConnection || state.remoteStream) return;
-      els.clientVideoStage?.classList.remove("camera-active", "screen-active", "webrtc-active");
-      if (els.clientOperatorVideo) {
-        els.clientOperatorVideo.srcObject = null;
-        els.clientOperatorVideo.pause?.();
+      if (state.peerConnection && state.rtcRole === "client") return;
+      if (!state.peerConnection) {
+        setVideoStream(els.clientOperatorVideo, null);
+        setVideoStream(els.clientLocalVideo, null);
+        els.clientVideoStage?.classList.remove("rtc-active", "rtc-connected", "camera-active", "screen-active");
       }
     }
 
@@ -4463,7 +4598,7 @@
       els.app.classList.add("is-locked");
       els.clientApp.classList.remove("is-locked");
       els.clientRoomCodeLabel.textContent = state.roomCode;
-      els.clientSessionStatus.textContent = "Conectado a live";
+      els.clientSessionStatus.textContent = "Entrando na videochamada";
       els.viewAdminBtn.hidden = state.role !== "operator";
       updateAccountBadge();
       setPageUrl("lojista", replaceUrl);
@@ -4472,6 +4607,7 @@
       showcaseProduct(products.find(product => product.id === state.featuredProductId) || products[0]);
       syncClientCamera();
       listenWebRtcCallStatus();
+      setRtcStatus("Aguardando operador");
     }
 
     function signIn(role, name, user = null) {
@@ -5243,6 +5379,15 @@
     });
     els.clientLogoutBtn.addEventListener("click", signOut);
     els.clientProposalBtn.addEventListener("click", openProposal);
+    els.clientJoinVideoBtn?.addEventListener("click", () => {
+      joinWebRtcAsClient(true).catch(error => {
+        console.warn("Client manual WebRTC join failed", error);
+        showToast("Não foi possível entrar no vídeo");
+      });
+    });
+    els.clientMicBtn?.addEventListener("click", () => toggleTrack("audio", els.clientMicBtn));
+    els.clientCameraBtn?.addEventListener("click", () => toggleTrack("video", els.clientCameraBtn));
+    els.clientEndVideoBtn?.addEventListener("click", leaveClientCall);
     els.clientCatalogStrip.addEventListener("click", event => {
       const card = event.target.closest("[data-client-product-id]");
       if (!card) return;
