@@ -2303,6 +2303,37 @@
       line-height: 1.45;
     }
 
+    .approval-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      margin-left: 8px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      vertical-align: middle;
+      background: #edf3f0;
+      color: var(--muted);
+    }
+
+    .approval-status.ok {
+      background: #dff0ea;
+      color: #0c5b47;
+    }
+
+    .approval-status.warning {
+      background: #fff2d9;
+      color: #8a5708;
+    }
+
+    .approval-status.danger {
+      background: #fde3e0;
+      color: #9c2e29;
+    }
+
     .approval-actions {
       display: flex;
       gap: 8px;
@@ -2677,9 +2708,9 @@
         <button class="icon-button" id="productAdminBtn" type="button" title="Cadastrar peça" aria-label="Cadastrar peça">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"></path><path d="M12 7v10"></path><path d="M8 9l4 2 4-2"></path></svg>
         </button>
-        <button class="secondary-action" id="approvalsBtn" type="button" title="Aprovar usuários" aria-label="Aprovar usuários">
+        <button class="secondary-action" id="approvalsBtn" type="button" title="Permissões de usuários" aria-label="Permissões de usuários">
           <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11l2 2 4-4"></path></svg>
-          Aprovações
+          Permissões
         </button>
         <button class="icon-button" id="shareOrderBtn" type="button" title="Compartilhar pedido" aria-label="Compartilhar pedido">
           <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8h16v-8"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
@@ -3211,8 +3242,8 @@
     <div class="modal-card wide">
       <div class="modal-head">
         <div>
-          <h2 id="approvalsTitle">Aprovação de usuários</h2>
-          <p class="login-note" style="margin-top:8px">Aprove ou recuse cadastros pendentes pelo painel.</p>
+          <h2 id="approvalsTitle">Permissões de usuários</h2>
+          <p class="login-note" style="margin-top:8px">Visualize cadastros, aprove acessos e acompanhe os perfis liberados.</p>
         </div>
         <button class="icon-button" id="closeApprovalsBtn" type="button" title="Fechar" aria-label="Fechar">
           <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
@@ -3220,7 +3251,7 @@
       </div>
       <div class="modal-body">
         <div class="approval-list" id="approvalsList">
-          <div class="empty-order"><div><strong>Carregando solicitações</strong><span>Aguarde o carregamento para visualizar os cadastros.</span></div></div>
+          <div class="empty-order"><div><strong>Carregando permissões</strong><span>Aguarde o carregamento para visualizar os usuários.</span></div></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -5323,10 +5354,31 @@
       };
 
       window.portalLoadApprovalRequests = async () => {
-        const snapshot = await firebase.getDocs(firebase.collection(firebase.db, "solicitacoesCadastro"));
-        return snapshot.docs
-          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
-          .filter(profile => profileApprovalState(profile) === "pending");
+        const [requestsSnapshot, usersSnapshot] = await Promise.all([
+          firebase.getDocs(firebase.collection(firebase.db, "solicitacoesCadastro")),
+          firebase.getDocs(firebase.collection(firebase.db, "usuarios"))
+        ]);
+        const merged = new Map();
+        requestsSnapshot.docs.forEach(docSnap => {
+          const data = docSnap.data() || {};
+          const uid = data.uid || docSnap.id;
+          merged.set(uid, { id: docSnap.id, uid, ...data });
+        });
+        usersSnapshot.docs.forEach(docSnap => {
+          const data = docSnap.data() || {};
+          const uid = data.uid || docSnap.id;
+          const previous = merged.get(uid) || {};
+          merged.set(uid, { ...previous, id: docSnap.id, uid, ...data });
+        });
+        return Array.from(merged.values())
+          .filter(profile => profile.uid || profile.id || profile.email)
+          .sort((a, b) => {
+            const order = { pending: 0, rejected: 1, approved: 2, unknown: 3 };
+            const ao = order[profileApprovalState(a)] ?? 3;
+            const bo = order[profileApprovalState(b)] ?? 3;
+            if (ao !== bo) return ao - bo;
+            return String(a.name || a.email || "").localeCompare(String(b.name || b.email || ""), "pt-BR");
+          });
       };
 
       window.portalResolveApproval = async (uid, approved) => {
@@ -5458,15 +5510,19 @@
     function approvalLine(profile) {
       const uid = profile.uid || profile.id || "";
       const role = profile.requestedRole === "operator" || profile.role === "operator" ? "Operador" : "Cliente lojista";
+      const approval = profileApprovalState(profile);
+      const statusLabel = approval === "approved" ? "Aprovado" : approval === "rejected" ? "Recusado" : "Pendente";
+      const statusClass = approval === "approved" ? "ok" : approval === "rejected" ? "danger" : "warning";
+      const approveText = approval === "approved" ? "Aprovado" : "Aprovar";
       return `
         <div class="approval-line" data-approval-uid="${escapeHtml(uid)}">
           <div>
-            <h3>${escapeHtml(profile.name || "Usuário sem nome")}</h3>
+            <h3>${escapeHtml(profile.name || "Usuário sem nome")} <span class="approval-status ${statusClass}">${statusLabel}</span></h3>
             <p>${escapeHtml(profile.company || "Empresa não informada")} · ${escapeHtml(profile.email || "sem e-mail")}<br>CNPJ: ${escapeHtml(profile.cnpj || "não informado")} · WhatsApp: ${escapeHtml(profile.phone || "não informado")} · Perfil: ${role}</p>
           </div>
           <div class="approval-actions">
             <button class="secondary-action danger-action" type="button" data-approval-action="reject">Recusar</button>
-            <button class="primary-action" type="button" data-approval-action="approve">Aprovar</button>
+            <button class="primary-action" type="button" data-approval-action="approve">${approveText}</button>
           </div>
         </div>
       `;
@@ -5479,17 +5535,17 @@
         list.innerHTML = `<div class="empty-order"><div><strong>Sistema carregando</strong><span>Aguarde para visualizar solicitações.</span></div></div>`;
         return;
       }
-      list.innerHTML = `<div class="empty-order"><div><strong>Buscando cadastros</strong><span>Carregando solicitações pendentes...</span></div></div>`;
+      list.innerHTML = `<div class="empty-order"><div><strong>Buscando usuários</strong><span>Carregando permissões...</span></div></div>`;
       try {
         const requests = await window.portalLoadApprovalRequests();
         if (!requests.length) {
-          list.innerHTML = `<div class="empty-order"><div><strong>Nenhuma solicitação pendente</strong><span>Novos cadastros aparecerão aqui automaticamente quando forem enviados.</span></div></div>`;
+          list.innerHTML = `<div class="empty-order"><div><strong>Nenhum usuário encontrado</strong><span>Novos cadastros aparecerão aqui automaticamente quando forem enviados.</span></div></div>`;
           return;
         }
         list.innerHTML = requests.map(approvalLine).join("");
       } catch (error) {
         console.warn("Approval list failed", error);
-        list.innerHTML = `<div class="empty-order"><div><strong>Sem permissão para aprovações</strong><span>Solicite ajuste de permissões para liberar o painel.</span></div></div>`;
+        list.innerHTML = `<div class="empty-order"><div><strong>Não foi possível carregar permissões</strong><span>Verifique se o usuário atual tem acesso de administrador.</span></div></div>`;
       }
     }
 
