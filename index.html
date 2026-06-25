@@ -3797,15 +3797,17 @@
       });
     }
 
-    async function queuePresentationSave(productId) {
-      if (!productId || typeof window.portalSavePresentation !== "function") return;
+    async function queuePresentationSave(product) {
+      if (!product || typeof window.portalSavePresentation !== "function") return;
       window.clearTimeout(presentationSaveTimer);
       try {
         await window.portalSavePresentation({
           roomCode: state.roomCode,
-          featuredProductId: productId,
+          featuredProductId: product.id,
+          product: cloneProductsForDatabase([product])[0],
           operatorUid: state.firebaseUser?.uid || null,
           operatorEmail: state.firebaseUser?.email || null,
+          presentationVersion: Date.now(),
           updatedAtClient: new Date().toISOString()
         });
       } catch (error) {
@@ -3827,7 +3829,7 @@
       renderPresentedPieceThumb(els.clientPresentedPieceVisual, els.clientPresentedPieceName, els.clientPresentedPieceMeta, product);
       updateClientCatalogActive();
       if (state.role === "operator" && options.syncPresentation && !options.skipSave && !isApplyingRemoteOrder) {
-        queuePresentationSave(product.id);
+        queuePresentationSave(product);
       }
     }
 
@@ -5403,11 +5405,12 @@
       const presentationRef = firebase.doc(firebase.db, "apresentacoes", state.roomCode);
       firebase.onSnapshot(presentationRef, snapshot => {
         const data = snapshot.data();
-        if (!data?.featuredProductId || data.featuredProductId === state.featuredProductId) return;
-        const product = products.find(item => item.id === data.featuredProductId);
+        if (!data?.featuredProductId) return;
+        const remoteProduct = data.product && typeof data.product === "object" ? data.product : null;
+        const product = products.find(item => item.id === data.featuredProductId) || remoteProduct;
         if (product) showcaseProduct(product, { skipSave: true });
       }, error => {
-        console.warn("Firebase presentation listener failed", error);
+        console.warn("Presentation listener failed", error);
       });
 
       firebase.onAuthStateChanged(firebase.auth, async user => {
