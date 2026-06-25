@@ -175,6 +175,7 @@
     }
 
     .firebase-status {
+      display: none !important;
       margin: 0;
       padding: 10px 12px;
       border: 1px solid var(--line);
@@ -848,6 +849,71 @@
       font-size: 12px;
     }
 
+    .presented-piece-thumb {
+      position: absolute;
+      right: 14px;
+      top: 90px;
+      width: 156px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(8, 19, 18, 0.74);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.22);
+      z-index: 17;
+      color: #fff;
+    }
+
+    .presented-piece-thumb.client {
+      right: 18px;
+      top: 104px;
+      width: 164px;
+    }
+
+    .presented-piece-label {
+      font-size: 10px;
+      line-height: 1.2;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.66);
+      font-weight: 800;
+    }
+
+    .presented-piece-visual {
+      min-height: 88px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .presented-piece-visual .garment {
+      width: 74px;
+      height: 74px;
+    }
+
+    .presented-piece-info {
+      display: grid;
+      gap: 3px;
+    }
+
+    .presented-piece-info strong {
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .presented-piece-info span {
+      font-size: 11px;
+      line-height: 1.35;
+      color: rgba(255,255,255,0.74);
+    }
+
     .operator-preview video {
       width: 100%;
       height: 100%;
@@ -1130,6 +1196,41 @@
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .product-image {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      border-radius: inherit;
+    }
+
+    .product-visual .product-image,
+    .client-mini-visual .product-image {
+      position: absolute;
+      inset: 0;
+      border-radius: 0;
+    }
+
+    .showcase-piece .product-image,
+    .client-showcase-piece .product-image {
+      width: min(100%, 460px);
+      height: min(100%, 520px);
+      object-fit: contain;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 28px 54px rgba(0,0,0,0.22);
+    }
+
+    .presented-piece-visual .product-image {
+      width: 100%;
+      height: 100%;
+      min-height: 88px;
+      object-fit: cover;
+      border-radius: 12px;
     }
 
     .stock-badge {
@@ -2092,6 +2193,7 @@
     }
 
     .tag.cloud-tag {
+      display: none !important;
       color: #704406;
       background: #fff1d8;
     }
@@ -2266,6 +2368,31 @@
 
 
 
+    @media (max-width: 960px) {
+      .presented-piece-thumb {
+        top: auto;
+        bottom: 128px;
+        right: 14px;
+        width: 138px;
+      }
+
+      .presented-piece-thumb.client {
+        top: auto;
+        bottom: 166px;
+        right: 14px;
+        width: 142px;
+      }
+
+      .presented-piece-visual {
+        min-height: 76px;
+      }
+
+      .presented-piece-visual .garment {
+        width: 62px;
+        height: 62px;
+      }
+    }
+
     /* Videochamada própria WebRTC */
     .rtc-remote-video {
       position: absolute;
@@ -2412,7 +2539,7 @@
 
     <div class="login-card">
       <h2>Entrar na sala</h2>
-      <p class="firebase-status warn" id="firebaseStatus">Conectando ao Firebase Realtime Database portal-f422a...</p>
+      <p class="firebase-status warn" id="firebaseStatus">Sistema iniciando...</p>
       <div class="login-tabs" role="tablist" aria-label="Tipo de acesso">
         <button class="login-tab active" type="button" data-login-role="operator">Operador</button>
         <button class="login-tab" type="button" data-login-role="client">Cliente lojista</button>
@@ -2426,7 +2553,7 @@
         </label>
         <label class="form-field">
           <span>Senha</span>
-          <input id="operatorPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada no Firebase">
+          <input id="operatorPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada">
         </label>
         <button class="primary-action" type="submit">
           <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>
@@ -2450,7 +2577,7 @@
         </label>
         <label class="form-field">
           <span>Senha</span>
-          <input id="clientRoomPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada no Firebase">
+          <input id="clientRoomPassword" type="password" autocomplete="current-password" placeholder="Senha cadastrada">
         </label>
         <button class="primary-action" type="submit">
           <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
@@ -2465,7 +2592,7 @@
 
       <form class="login-form" id="registerForm" hidden>
         <p class="login-note">
-          <strong>Cadastro com aprovação:</strong> a conta fica pendente no Firebase e só entra depois que você aprovar no Realtime Database.
+          <strong>Cadastro com aprovação:</strong> a conta fica pendente até ser aprovada pelo administrador.
         </p>
         <label class="form-field">
           <span>Nome completo</span>
@@ -2590,6 +2717,14 @@
             <div class="showcase-piece" id="showcasePiece"></div>
             <div class="customer-avatar" id="customerAvatar">AM</div>
           </div>
+          <div class="presented-piece-thumb" id="presentedPieceThumb" aria-label="Peça apresentada na chamada">
+            <div class="presented-piece-label">Peça apresentada</div>
+            <div class="presented-piece-visual" id="presentedPieceVisual"></div>
+            <div class="presented-piece-info">
+              <strong id="presentedPieceName">Blazer Milano Alfaiataria</strong>
+              <span id="presentedPieceMeta">Azul marinho | Blazers</span>
+            </div>
+          </div>
           <div class="showcase-caption">
             <strong id="showcaseName">Blazer Milano Alfaiataria</strong>
             <span id="showcaseMeta">Azul marinho | Crepe premium</span>
@@ -2626,7 +2761,7 @@
           </div>
           <div class="live-status-grid">
             <div class="status-item"><strong>Câmera + áudio</strong><span>Captura real pelo navegador</span></div>
-            <div class="status-item"><strong>Firebase RTC</strong><span>Sinalização da sala ao vivo</span></div>
+            <div class="status-item"><strong>Conexão ao vivo</strong><span>Sala de vídeo integrada</span></div>
             <div class="status-item"><strong>Tela</strong><span>Compartilhamento por getDisplayMedia</span></div>
           </div>
         </section>
@@ -2706,8 +2841,8 @@
       <aside class="panel order-panel" aria-label="Pedido">
         <div class="panel-title">
           <h2>Pedido em tempo real</h2>
-          <span class="tag" id="orderSyncTag">Sincronizado</span>
-          <span class="tag cloud-tag" id="orderCloudTag">Nuvem pronta</span>
+          <span class="tag" id="orderSyncTag">Pronto</span>
+          <span class="tag cloud-tag" id="orderCloudTag">Pronto</span>
         </div>
 
         <section class="summary-card" aria-label="Resumo do pedido">
@@ -2818,6 +2953,14 @@
             <strong id="clientShowcaseName">Blazer Milano Alfaiataria</strong>
             <span id="clientShowcaseMeta">Azul marinho | Crepe premium</span>
           </div>
+          <div class="presented-piece-thumb client" id="clientPresentedPieceThumb" aria-label="Peça apresentada na chamada do lojista">
+            <div class="presented-piece-label">Peça apresentada</div>
+            <div class="presented-piece-visual" id="clientPresentedPieceVisual"></div>
+            <div class="presented-piece-info">
+              <strong id="clientPresentedPieceName">Blazer Milano Alfaiataria</strong>
+              <span id="clientPresentedPieceMeta">Azul marinho | Blazers</span>
+            </div>
+          </div>
           <div class="client-operator-badge">OP</div>
           <div class="client-camera-placeholder" id="clientCâmeraPlaceholder">
             <div>
@@ -2865,8 +3008,8 @@
       <aside class="client-side" aria-label="Pedido do lojista">
         <div class="panel-title">
           <h2>Meu pedido</h2>
-          <span class="tag" id="clientOrderSyncTag">Sincronizado</span>
-          <span class="tag cloud-tag" id="clientCloudTag">Nuvem pronta</span>
+          <span class="tag" id="clientOrderSyncTag">Pronto</span>
+          <span class="tag cloud-tag" id="clientCloudTag">Pronto</span>
         </div>
 
         <section class="journey-card" aria-label="Etapas do atendimento">
@@ -2948,7 +3091,7 @@
       <div class="modal-body">
         <div class="invite-grid">
           <div class="invite-box"><span>Código</span><strong id="inviteCode">LIVE-4821</strong></div>
-          <div class="invite-box"><span>Acesso</span><strong id="invitePassword">Firebase Auth</strong></div>
+          <div class="invite-box"><span>Acesso</span><strong id="invitePassword">Acesso seguro</strong></div>
           <div class="invite-box"><span>Status</span><strong id="inviteStatus">Aberta</strong></div>
         </div>
         <label class="form-field">
@@ -3032,6 +3175,10 @@
                 <span>Cores</span>
                 <textarea id="newProductColors" required placeholder="Azul marinho:#172c4f, Off white:#f4f1e9"></textarea>
               </label>
+              <label class="form-field full">
+                <span>Link da imagem da peça</span>
+                <input id="newProductImageUrl" type="url" inputmode="url" placeholder="https://exemplo.com/imagem-da-peca.jpg">
+              </label>
             </div>
             <button class="primary-action" type="submit">
               <svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
@@ -3042,7 +3189,7 @@
           <section aria-label="Peças cadastradas">
             <div class="panel-title">
               <h2>Peças cadastradas</h2>
-              <button class="icon-button" id="seedProductsBtn" type="button" title="Criar itens na base Firebase" aria-label="Criar itens na base Firebase">
+              <button class="icon-button" id="seedProductsBtn" type="button" title="Atualizar catálogo" aria-label="Atualizar catálogo">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
               </button>
               <button class="icon-button" id="resetProductsBtn" type="button" title="Restaurar exemplos" aria-label="Restaurar exemplos">
@@ -3065,7 +3212,7 @@
       <div class="modal-head">
         <div>
           <h2 id="approvalsTitle">Aprovação de usuários</h2>
-          <p class="login-note" style="margin-top:8px">Aprove ou recuse cadastros pendentes sem precisar editar o Realtime Database manualmente.</p>
+          <p class="login-note" style="margin-top:8px">Aprove ou recuse cadastros pendentes pelo painel.</p>
         </div>
         <button class="icon-button" id="closeApprovalsBtn" type="button" title="Fechar" aria-label="Fechar">
           <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
@@ -3073,7 +3220,7 @@
       </div>
       <div class="modal-body">
         <div class="approval-list" id="approvalsList">
-          <div class="empty-order"><div><strong>Carregando solicitações</strong><span>Conecte o Firebase para visualizar os cadastros.</span></div></div>
+          <div class="empty-order"><div><strong>Carregando solicitações</strong><span>Aguarde o carregamento para visualizar os cadastros.</span></div></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -3252,6 +3399,7 @@
     };
 
     let orderSaveTimer = null;
+    let presentationSaveTimer = null;
     let isApplyingRemoteOrder = false;
 
     const els = {
@@ -3332,6 +3480,9 @@
       showcasePiece: document.querySelector("#showcasePiece"),
       showcaseName: document.querySelector("#showcaseName"),
       showcaseMeta: document.querySelector("#showcaseMeta"),
+      presentedPieceVisual: document.querySelector("#presentedPieceVisual"),
+      presentedPieceName: document.querySelector("#presentedPieceName"),
+      presentedPieceMeta: document.querySelector("#presentedPieceMeta"),
       customerAvatar: document.querySelector("#customerAvatar"),
       customerNameDisplay: document.querySelector("#customerNameDisplay"),
       clientNameSummary: document.querySelector("#clientNameSummary"),
@@ -3353,6 +3504,9 @@
       clientShowcasePiece: document.querySelector("#clientShowcasePiece"),
       clientShowcaseName: document.querySelector("#clientShowcaseName"),
       clientShowcaseMeta: document.querySelector("#clientShowcaseMeta"),
+      clientPresentedPieceVisual: document.querySelector("#clientPresentedPieceVisual"),
+      clientPresentedPieceName: document.querySelector("#clientPresentedPieceName"),
+      clientPresentedPieceMeta: document.querySelector("#clientPresentedPieceMeta"),
       clientBuyerName: document.querySelector("#clientBuyerName"),
       clientCatalogStrip: document.querySelector("#clientCatalogStrip"),
       clientCatalogCount: document.querySelector("#clientCatalogCount"),
@@ -3389,7 +3543,8 @@
       newProductPrice: document.querySelector("#newProductPrice"),
       newProductStock: document.querySelector("#newProductStock"),
       newProductSizes: document.querySelector("#newProductSizes"),
-      newProductColors: document.querySelector("#newProductColors")
+      newProductColors: document.querySelector("#newProductColors"),
+      newProductImageUrl: document.querySelector("#newProductImageUrl")
     };
 
     const money = new Intl.NumberFormat("pt-BR", {
@@ -3399,7 +3554,8 @@
 
     function setFirebaseStatus(message, type = "info") {
       if (!els.firebaseStatus) return;
-      els.firebaseStatus.textContent = message;
+      els.firebaseStatus.hidden = true;
+      els.firebaseStatus.textContent = "";
       els.firebaseStatus.className = `firebase-status ${type}`.trim();
     }
 
@@ -3440,19 +3596,20 @@
             }))
           : [],
         type: String(product.type || "shirt"),
-        visual: String(product.visual || "#eef3f0")
+        visual: String(product.visual || "#eef3f0"),
+        imageUrl: String(product.imageUrl || "")
       }));
     }
 
     async function createItemsInFirebase() {
       if (typeof window.portalSeedDatabase !== "function") {
-        showToast("Firebase ainda nao carregou");
+        showToast("Sistema ainda está carregando");
         return;
       }
 
       try {
         await window.portalSeedDatabase(products);
-        showToast("Itens criados na base Firebase");
+        showToast("Catálogo atualizado");
       } catch (error) {
         console.warn("Firebase seed failed", error);
         showToast("Sem permissao para criar itens");
@@ -3466,6 +3623,22 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function cleanImageUrl(value) {
+      const url = String(value || "").trim();
+      if (!url) return "";
+      if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url)) return url;
+      return "";
+    }
+
+    function productVisualMarkup(product, mainColor) {
+      const imageUrl = cleanImageUrl(product?.imageUrl);
+      if (imageUrl) {
+        return `<img class="product-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product?.name || "Imagem da peça")}" loading="lazy">`;
+      }
+      const color = mainColor || product?.colors?.[0]?.hex || "#35695e";
+      return `<div class="garment">${iconGarment(product?.type || "shirt", color)}</div>`;
     }
 
     function parsePrice(value) {
@@ -3578,17 +3751,53 @@
         </svg>`;
     }
 
-    function showcaseProduct(product) {
+    function renderPresentedPieceThumb(visualEl, nameEl, metaEl, product) {
+      if (!visualEl || !nameEl || !metaEl || !product) return;
+      const mainColor = product.colors[0]?.hex || "#35695e";
+      visualEl.innerHTML = productVisualMarkup(product, mainColor);
+      nameEl.textContent = product.name;
+      metaEl.textContent = `${product.colors[0]?.name || "Cor"} | ${product.category}`;
+    }
+
+    function updateClientCatalogActive() {
+      if (!els.clientCatalogStrip) return;
+      els.clientCatalogStrip.querySelectorAll("[data-client-product-id]").forEach(card => {
+        card.classList.toggle("active", card.dataset.clientProductId === state.featuredProductId);
+      });
+    }
+
+    function queuePresentationSave(productId) {
+      if (!productId || typeof window.portalSavePresentation !== "function") return;
+      window.clearTimeout(presentationSaveTimer);
+      presentationSaveTimer = window.setTimeout(() => {
+        window.portalSavePresentation({
+          roomCode: state.roomCode,
+          featuredProductId: productId,
+          operatorUid: state.firebaseUser?.uid || null,
+          operatorEmail: state.firebaseUser?.email || null,
+          updatedAtClient: new Date().toISOString()
+        }).catch(error => {
+          console.warn("Presentation save failed", error);
+        });
+      }, 250);
+    }
+
+    function showcaseProduct(product, options = {}) {
       if (!product) return;
       state.featuredProductId = product.id;
       const mainColor = product.colors[0]?.hex || "#35695e";
-      els.showcasePiece.innerHTML = `<div class="garment">${iconGarment(product.type, mainColor)}</div>`;
+      els.showcasePiece.innerHTML = productVisualMarkup(product, mainColor);
       els.showcaseName.textContent = product.name;
       els.showcaseMeta.textContent = `${product.colors[0]?.name || "Cor"} | ${product.fabric}`;
-      els.clientShowcasePiece.innerHTML = `<div class="garment">${iconGarment(product.type, mainColor)}</div>`;
+      els.clientShowcasePiece.innerHTML = productVisualMarkup(product, mainColor);
       els.clientShowcaseName.textContent = product.name;
       els.clientShowcaseMeta.textContent = `${product.colors[0]?.name || "Cor"} | ${product.fabric}`;
-      renderClientCatalog();
+      renderPresentedPieceThumb(els.presentedPieceVisual, els.presentedPieceName, els.presentedPieceMeta, product);
+      renderPresentedPieceThumb(els.clientPresentedPieceVisual, els.clientPresentedPieceName, els.clientPresentedPieceMeta, product);
+      updateClientCatalogActive();
+      if (state.role === "operator" && options.syncPresentation && !options.skipSave && !isApplyingRemoteOrder) {
+        queuePresentationSave(product.id);
+      }
     }
 
     function getFilteredProducts() {
@@ -3625,12 +3834,13 @@
         const swatches = product.colors.map(color => `<span class="swatch" style="background:${escapeHtml(color.hex)}" title="${escapeHtml(color.name)}"></span>`).join("");
         const grade = product.sizes.map(size => `<span>${escapeHtml(size)}</span>`).join("");
         const mainColor = product.colors[0]?.hex || "#35695e";
+        const visualMarkup = productVisualMarkup(product, mainColor);
 
         return `
           <article class="product-card" data-product-id="${product.id}">
             <div class="product-visual" style="--visual-bg:${product.visual}">
               <span class="stock-badge">${product.stock} disp.</span>
-              <div class="garment">${iconGarment(product.type, mainColor)}</div>
+              ${visualMarkup}
             </div>
             <div class="product-body">
               <div class="product-main">
@@ -3688,10 +3898,11 @@
       els.clientCatalogStrip.innerHTML = list.map(product => {
         const mainColor = product.colors[0]?.hex || "#35695e";
         const active = product.id === state.featuredProductId ? " active" : "";
+        const visualMarkup = productVisualMarkup(product, mainColor);
         return `
           <article class="client-catalog-card${active}" data-client-product-id="${escapeHtml(product.id)}">
             <div class="client-mini-visual" style="--visual-bg:${escapeHtml(product.visual)}">
-              <div class="garment">${iconGarment(product.type, mainColor)}</div>
+              ${visualMarkup}
             </div>
             <h3>${escapeHtml(product.name)}</h3>
             <p>${escapeHtml(product.origin)} | ${money.format(product.price)}</p>
@@ -3785,20 +3996,20 @@
 
     async function saveOrderToFirebase(status = "rascunho", options = {}) {
       if (typeof window.portalSaveOrder !== "function") {
-        updateOrderCloudStatus("Local");
-        if (!options.silent) showToast("Pedido salvo apenas neste navegador");
+        updateOrderCloudStatus("Pronto");
+        if (!options.silent) showToast("Pedido mantido nesta sessão");
         return false;
       }
       try {
-        updateOrderCloudStatus("Salvando...");
+        updateOrderCloudStatus("Atualizando...");
         await window.portalSaveOrder(orderPayload(status));
-        updateOrderCloudStatus(status === "confirmado" ? "Confirmado" : "Salvo");
-        if (!options.silent) showToast(status === "confirmado" ? "Pedido confirmado e salvo" : "Pedido salvo no Firebase");
+        updateOrderCloudStatus(status === "confirmado" ? "Confirmado" : "Pronto");
+        if (!options.silent) showToast(status === "confirmado" ? "Pedido confirmado" : "Pedido atualizado");
         return true;
       } catch (error) {
         console.warn("Order save failed", error);
-        updateOrderCloudStatus("Erro na nuvem");
-        if (!options.silent) showToast("Não foi possível salvar no Firebase");
+        updateOrderCloudStatus("Atenção");
+        if (!options.silent) showToast("Não foi possível concluir");
         return false;
       }
     }
@@ -3810,7 +4021,9 @@
       if (payload.featuredProductId) state.featuredProductId = payload.featuredProductId;
       renderOrder();
       renderCatalog();
-      updateOrderCloudStatus(payload.status === "confirmado" ? "Confirmado" : "Sincronizado");
+      const featuredProduct = products.find(item => item.id === state.featuredProductId) || products[0];
+      if (featuredProduct) showcaseProduct(featuredProduct, { skipSave: true });
+      updateOrderCloudStatus(payload.status === "confirmado" ? "Confirmado" : "Pronto");
       isApplyingRemoteOrder = false;
     }
 
@@ -3994,8 +4207,8 @@
       els.orderSyncTag.textContent = "Atualizando";
       els.clientOrderSyncTag.textContent = "Atualizando";
       window.setTimeout(() => {
-        els.orderSyncTag.textContent = "Sincronizado";
-        els.clientOrderSyncTag.textContent = "Sincronizado";
+        els.orderSyncTag.textContent = "Pronto";
+        els.clientOrderSyncTag.textContent = "Pronto";
       }, 550);
     }
 
@@ -4640,7 +4853,7 @@
 
     function openInvite() {
       els.inviteCode.textContent = state.roomCode;
-      els.invitePassword.textContent = "Firebase Auth";
+      els.invitePassword.textContent = "Acesso seguro";
       els.inviteLink.value = roomLink();
       els.inviteModal.classList.add("open");
     }
@@ -4650,7 +4863,7 @@
     }
 
     async function copyInvite() {
-      const text = `Convite Sala Virtual Textil\nLink: ${roomLink()}\nCódigo: ${state.roomCode}\nAcesso: entrar com e-mail e senha cadastrados no Firebase`;
+      const text = `Convite Sala Virtual Textil\nLink: ${roomLink()}\nCódigo: ${state.roomCode}\nAcesso: entrar com e-mail e senha cadastrados`;
       try {
         await navigator.clipboard.writeText(text);
         showToast("Convite copiado");
@@ -4666,6 +4879,7 @@
       const stock = Number(els.newProductStock.value);
       const sizes = parseList(els.newProductSizes.value);
       const colors = parseColors(els.newProductColors.value);
+      const imageUrl = cleanImageUrl(els.newProductImageUrl?.value || "");
 
       if (!id || !els.newProductName.value.trim() || !Number.isFinite(price) || price <= 0 || !stock || !sizes.length || !colors.length) {
         return null;
@@ -4682,7 +4896,8 @@
         sizes,
         colors,
         type: els.newProductType.value,
-        visual: "#eef3f0"
+        visual: "#eef3f0",
+        imageUrl
       };
     }
 
@@ -4697,6 +4912,7 @@
       els.newProductStock.value = product.stock;
       els.newProductSizes.value = product.sizes.join(", ");
       els.newProductColors.value = product.colors.map(color => `${color.name}:${color.hex}`).join(", ");
+      if (els.newProductImageUrl) els.newProductImageUrl.value = product.imageUrl || "";
       els.newProductName.focus();
     }
 
@@ -4817,8 +5033,8 @@
 
     async function firebaseRegister() {
       if (!window.portalFirebaseRegister) {
-        setFirebaseStatus("Firebase ainda não carregou. Abra pelo Firebase Hosting ou aguarde alguns segundos.", "warn");
-        showToast("Aguarde o Firebase carregar");
+        setFirebaseStatus("Sistema carregando. Aguarde alguns segundos.", "warn");
+        showToast("Aguarde o sistema carregar");
         return;
       }
 
@@ -4847,13 +5063,13 @@
       }
 
       try {
-        setFirebaseStatus("Enviando cadastro para o Realtime Database...", "warn");
+        setFirebaseStatus("Enviando cadastro...", "warn");
         await window.portalFirebaseRegister(data);
         els.registerForm.reset();
         els.clientRoomCode.value = data.email;
         setLoginRole("client");
-        setFirebaseStatus("Cadastro gravado no Realtime Database. Agora aprove o usuário em usuarios/{uid} ou no painel de aprovações.", "ok");
-        showToast("Cadastro enviado. Aprove no Realtime Database para liberar acesso.");
+        setFirebaseStatus("Cadastro enviado. Aguarde aprovação.", "ok");
+        showToast("Cadastro enviado. Aguarde aprovação.");
       } catch (error) {
         console.warn("Firebase register failed", error);
         setFirebaseStatus(`Erro no cadastro: ${error?.code || error?.message || error}`, "danger");
@@ -4863,7 +5079,7 @@
         } else if (code.includes("weak-password")) {
           showToast("Senha fraca. Use pelo menos 6 caracteres");
         } else if (code.includes("permission-denied")) {
-          showToast("Sem permissão para gravar cadastro no Realtime Database");
+          showToast("Sem permissão para concluir cadastro");
         } else {
           showToast("Nao foi possivel enviar cadastro");
         }
@@ -4872,26 +5088,26 @@
 
     async function firebaseLogin(email, password, requestedRole = "client") {
       if (!window.portalFirebaseSignIn) {
-        setFirebaseStatus("Firebase ainda não carregou. Abra pelo Firebase Hosting ou aguarde alguns segundos.", "warn");
-        showToast("Aguarde o Firebase carregar");
+        setFirebaseStatus("Sistema carregando. Aguarde alguns segundos.", "warn");
+        showToast("Aguarde o sistema carregar");
         return;
       }
 
       try {
-        setFirebaseStatus("Validando login no Firebase Auth e perfil no Realtime Database...", "warn");
+        setFirebaseStatus("Validando acesso...", "warn");
         await window.portalFirebaseSignIn(email, password, requestedRole);
       } catch (error) {
         console.warn("Firebase login failed", error);
         const message = String(error?.message || "").toLowerCase();
         setFirebaseStatus(`Falha no acesso: ${error?.code || error?.message || "verifique e-mail, senha e aprovação"}`, "danger");
         if (message.includes("perfil criado")) {
-          showToast("Perfil criado. Aprove no Realtime Database.");
+          showToast("Cadastro criado. Aguarde aprovação.");
         } else if (message.includes("pendente")) {
-          showToast("Cadastro pendente de aprovação no Firebase");
+          showToast("Cadastro pendente de aprovação");
         } else if (message.includes("bloqueado") || message.includes("rejeitado") || message.includes("recusado")) {
-          showToast("Cadastro não aprovado no Firebase");
+          showToast("Cadastro não aprovado");
         } else {
-          showToast("Login inválido no Firebase");
+          showToast("Login inválido");
         }
       }
     }
@@ -4899,8 +5115,8 @@
 
     async function firebaseGoogleAccess(requestedRole = "client", registration = {}) {
       if (!window.portalFirebaseGoogleSignIn) {
-        setFirebaseStatus("Firebase ainda não carregou. Aguarde alguns segundos e tente novamente.", "warn");
-        showToast("Aguarde o Firebase carregar");
+        setFirebaseStatus("Sistema carregando. Aguarde alguns segundos e tente novamente.", "warn");
+        showToast("Aguarde o sistema carregar");
         return;
       }
 
@@ -4913,7 +5129,7 @@
         const code = error?.code || "";
         setFirebaseStatus(`Falha no Google: ${code || error?.message || "verifique se o provedor Google está ativado"}`, "danger");
         if (message.includes("perfil criado")) {
-          showToast("Perfil Google criado. Aprove no Realtime Database.");
+          showToast("Cadastro criado. Aguarde aprovação.");
         } else if (message.includes("pendente")) {
           showToast("Cadastro Google pendente de aprovação");
         } else if (message.includes("bloqueado") || message.includes("rejeitado") || message.includes("recusado")) {
@@ -4921,7 +5137,7 @@
         } else if (code.includes("popup-closed-by-user")) {
           showToast("Login Google cancelado");
         } else if (code.includes("operation-not-allowed")) {
-          showToast("Ative o provedor Google no Firebase Auth");
+          showToast("Acesso com Google não está habilitado");
         } else {
           showToast("Não foi possível entrar com Google");
         }
@@ -4931,7 +5147,7 @@
     window.addEventListener("firebase-ready", event => {
       const firebase = event.detail;
       if (!firebase?.db) return;
-      setFirebaseStatus("Firebase Realtime Database conectado ao projeto portal-f422a. Faça login, cadastre um usuário ou acesse com Google.", "ok");
+      setFirebaseStatus("Sistema pronto. Faça login, cadastre um usuário ou acesse com Google.", "ok");
 
       window.portalFirebaseSignIn = async (email, password, requestedRole = "client") => {
         const credential = await firebase.signInWithEmailAndPassword(firebase.auth, email, password);
@@ -4957,23 +5173,23 @@
           await firebase.setDoc(profileRef, pendingProfile, { merge: true });
           await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", credential.user.uid), pendingProfile, { merge: true });
           await firebase.signOut(firebase.auth);
-          throw new Error("Perfil criado e pendente de aprovação no Realtime Database");
+          throw new Error("Perfil criado e pendente de aprovação");
         }
 
         const profile = profileSnap.data();
         const approval = profileApprovalState(profile);
         if (approval === "pending") {
           await firebase.signOut(firebase.auth);
-          throw new Error("Cadastro pendente de aprovação no Firebase");
+          throw new Error("Cadastro pendente de aprovação");
         }
         if (approval === "rejected") {
           await firebase.signOut(firebase.auth);
-          throw new Error("Cadastro bloqueado, recusado ou rejeitado no Firebase");
+          throw new Error("Cadastro bloqueado, recusado ou rejeitado");
         }
 
         const role = profileRole(profile);
         const name = profile.name || credential.user.displayName || credential.user.email || "Lojista";
-        setFirebaseStatus(`Conectado ao Realtime Database como ${role === "operator" ? "operador" : "cliente"}.`, "ok");
+        setFirebaseStatus(`Acesso liberado como ${role === "operator" ? "operador" : "cliente"}.`, "ok");
         signIn(role, name, credential.user);
       };
 
@@ -5012,7 +5228,7 @@
 
       window.portalFirebaseGoogleSignIn = async (requestedRole = "client", registration = {}) => {
         if (!firebase.GoogleAuthProvider || !firebase.signInWithPopup) {
-          throw new Error("Provedor Google não carregado no Firebase Auth");
+          throw new Error("Acesso com Google não carregado");
         }
 
         const provider = new firebase.GoogleAuthProvider();
@@ -5045,18 +5261,18 @@
           await firebase.setDoc(profileRef, profile, { merge: true });
           await firebase.setDoc(firebase.doc(firebase.db, "solicitacoesCadastro", user.uid), profile, { merge: true });
           await firebase.signOut(firebase.auth);
-          throw new Error("Perfil criado e pendente de aprovação no Realtime Database");
+          throw new Error("Perfil criado e pendente de aprovação");
         }
 
         const profile = profileSnap.data();
         const approval = profileApprovalState(profile);
         if (approval === "pending") {
           await firebase.signOut(firebase.auth);
-          throw new Error("Cadastro pendente de aprovação no Firebase");
+          throw new Error("Cadastro pendente de aprovação");
         }
         if (approval === "rejected") {
           await firebase.signOut(firebase.auth);
-          throw new Error("Cadastro bloqueado, recusado ou rejeitado no Firebase");
+          throw new Error("Cadastro bloqueado, recusado ou rejeitado");
         }
 
         await firebase.setDoc(profileRef, {
@@ -5069,7 +5285,7 @@
 
         const finalRole = profileRole(profile);
         const name = profile.name || user.displayName || user.email || "Lojista";
-        setFirebaseStatus(`Conectado com Google como ${finalRole === "operator" ? "operador" : "cliente"}.`, "ok");
+        setFirebaseStatus(`Acesso com Google liberado como ${finalRole === "operator" ? "operador" : "cliente"}.`, "ok");
         signIn(finalRole, name, user);
       };
 
@@ -5091,6 +5307,18 @@
         };
         await firebase.setDoc(firebase.doc(firebase.db, "pedidos", payload.roomCode), data, { merge: true });
         await firebase.setDoc(firebase.doc(firebase.db, "portais", "portal-f422a", "pedidos", payload.roomCode), data, { merge: true });
+        return data;
+      };
+
+      window.portalSavePresentation = async payload => {
+        const now = firebase.serverTimestamp();
+        const data = {
+          ...payload,
+          updatedAt: now,
+          portalId: "portal-f422a"
+        };
+        await firebase.setDoc(firebase.doc(firebase.db, "apresentacoes", payload.roomCode), data, { merge: true });
+        await firebase.setDoc(firebase.doc(firebase.db, "portais", "portal-f422a", "apresentacoes", payload.roomCode), data, { merge: true });
         return data;
       };
 
@@ -5117,7 +5345,17 @@
         }
       }, error => {
         console.warn("Firebase order listener failed", error);
-        updateOrderCloudStatus("Sem permissão");
+        updateOrderCloudStatus("Atenção");
+      });
+
+      const presentationRef = firebase.doc(firebase.db, "apresentacoes", state.roomCode);
+      firebase.onSnapshot(presentationRef, snapshot => {
+        const data = snapshot.data();
+        if (!data?.featuredProductId || data.featuredProductId === state.featuredProductId) return;
+        const product = products.find(item => item.id === data.featuredProductId);
+        if (product) showcaseProduct(product, { skipSave: true });
+      }, error => {
+        console.warn("Firebase presentation listener failed", error);
       });
 
       firebase.onAuthStateChanged(firebase.auth, async user => {
@@ -5191,7 +5429,7 @@
         ])));
 
         if (!options.silent) {
-          showToast(`${cleanProducts.length} itens enviados ao Firebase`);
+          showToast(`${cleanProducts.length} itens atualizados`);
         }
       };
 
@@ -5204,16 +5442,16 @@
         }
       }, error => {
         console.warn("Firebase catalog listener failed", error);
-        showToast("Realtime Database sem permissão de leitura");
+        showToast("Sem permissão de leitura");
       });
 
-      showToast("Firebase conectado");
+      showToast("Sistema pronto");
     });
 
     window.addEventListener("firebase-error", event => {
       console.warn("Firebase connection failed", event.detail);
-      setFirebaseStatus(`Firebase indisponível: ${event.detail?.message || event.detail || "erro ao carregar SDK"}`, "danger");
-      showToast("Firebase indisponível");
+      setFirebaseStatus(`Sistema indisponível: ${event.detail?.message || event.detail || "erro ao carregar"}`, "danger");
+      showToast("Sistema indisponível");
     });
 
 
@@ -5238,7 +5476,7 @@
       const list = document.querySelector("#approvalsList");
       if (!list) return;
       if (typeof window.portalLoadApprovalRequests !== "function") {
-        list.innerHTML = `<div class="empty-order"><div><strong>Firebase ainda não carregou</strong><span>Aguarde a conexão para visualizar solicitações.</span></div></div>`;
+        list.innerHTML = `<div class="empty-order"><div><strong>Sistema carregando</strong><span>Aguarde para visualizar solicitações.</span></div></div>`;
         return;
       }
       list.innerHTML = `<div class="empty-order"><div><strong>Buscando cadastros</strong><span>Carregando solicitações pendentes...</span></div></div>`;
@@ -5251,7 +5489,7 @@
         list.innerHTML = requests.map(approvalLine).join("");
       } catch (error) {
         console.warn("Approval list failed", error);
-        list.innerHTML = `<div class="empty-order"><div><strong>Sem permissão para aprovações</strong><span>Confira as regras do Realtime Database para usuarios e solicitacoesCadastro.</span></div></div>`;
+        list.innerHTML = `<div class="empty-order"><div><strong>Sem permissão para aprovações</strong><span>Solicite ajuste de permissões para liberar o painel.</span></div></div>`;
       }
     }
 
@@ -5346,10 +5584,12 @@
     }, true);
 
     els.catalogGrid.addEventListener("click", event => {
+      const interactive = event.target.closest("button, input, select, textarea, label, .product-controls");
+      if (interactive) return;
       const card = event.target.closest("[data-product-id]");
       if (!card) return;
       const product = products.find(item => item.id === card.dataset.productId);
-      showcaseProduct(product);
+      showcaseProduct(product, { syncPresentation: true });
     });
 
     els.orderList.addEventListener("click", event => {
@@ -5389,6 +5629,8 @@
     els.clientCameraBtn?.addEventListener("click", () => toggleTrack("video", els.clientCameraBtn));
     els.clientEndVideoBtn?.addEventListener("click", leaveClientCall);
     els.clientCatalogStrip.addEventListener("click", event => {
+      const interactive = event.target.closest("button, input, select, textarea, label");
+      if (interactive) return;
       const card = event.target.closest("[data-client-product-id]");
       if (!card) return;
       const product = products.find(item => item.id === card.dataset.clientProductId);
@@ -5413,6 +5655,7 @@
       saveProduct(product);
       els.productForm.reset();
       els.newProductStock.value = "24";
+      if (els.newProductImageUrl) els.newProductImageUrl.value = "";
     });
     els.productAdminList.addEventListener("click", event => {
       const editButton = event.target.closest("[data-edit-product]");
@@ -5502,8 +5745,6 @@
       storageBucket: "portal-f422a.firebasestorage.app",
       messagingSenderId: "479661755295",
       appId: "1:479661755295:web:15e4f2e340db72a2b5cbaa",
-      // IMPORTANTE: crie o Realtime Database usando este endereço.
-      // Se o Firebase mostrar outra URL, substitua a linha abaixo pela URL exata do banco.
       databaseURL: "https://portal-f422a-default-rtdb.firebaseio.com"
     };
 
@@ -5646,7 +5887,7 @@
 
       console.info("Firebase Realtime Database conectado ao projeto:", firebaseConfig.projectId);
       window.setFirebaseStatus?.(
-        `Realtime Database conectado ao projeto ${firebaseConfig.projectId}. URL: ${firebaseConfig.databaseURL}`,
+        `Sistema pronto`,
         "ok"
       );
 
@@ -5675,7 +5916,7 @@
         detail: window.firebasePortal
       }));
     } catch (error) {
-      window.setFirebaseStatus?.(`Erro ao carregar Firebase Realtime Database: ${error?.message || error}`, "danger");
+      window.setFirebaseStatus?.(`Erro ao carregar o sistema: ${error?.message || error}`, "danger");
       window.dispatchEvent(new CustomEvent("firebase-error", {
         detail: error
       }));
